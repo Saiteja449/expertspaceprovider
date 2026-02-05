@@ -3,6 +3,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 const { width, height } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
+  // --- Original Styles ---
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -13,7 +14,7 @@ export const styles = StyleSheet.create({
   logoSection: {
     alignItems: 'center',
     marginBottom: 50,
-    width: 240, // Match SVG width to allow precise badge alignment
+    width: 240,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -27,14 +28,14 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 2,
     alignSelf: 'flex-end',
-    marginTop: -15, // Overlap slightly or position close to text
-    transform: [{ translateX: 10 }], // Slight offset to the right if needed, or remove
+    marginTop: -15,
+    transform: [{ translateX: 10 }],
   },
   supplierText: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
-    textTransform: 'capitalize', // "Supplier" is usually Title Case or Uppercase. Prompt says "Supplier".
+    textTransform: 'capitalize',
   },
   tagline: {
     fontSize: 18,
@@ -50,7 +51,7 @@ export const styles = StyleSheet.create({
   // Login Screen Styles
   loginContainer: {
     flex: 1,
-    backgroundColor: '#F8F9FE', // Light background from image
+    backgroundColor: '#F8F9FE',
   },
   loginScrollContainer: {
     flexGrow: 1,
@@ -92,7 +93,7 @@ export const styles = StyleSheet.create({
   },
   inputField: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 30, // Rounded pill shape as seen in image
+    borderRadius: 30,
     paddingVertical: 14,
     paddingHorizontal: 20,
     fontSize: 16,
@@ -125,7 +126,7 @@ export const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#FF5722', // Match brand color
+    borderColor: '#FF5722',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -144,7 +145,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   loginButton: {
-    backgroundColor: '#FF4500', // Vibrant Red/Orange
+    backgroundColor: '#FF4500',
     borderRadius: 30,
     width: '100%',
     paddingVertical: 16,
@@ -195,14 +196,14 @@ export const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   activeStep: {
-    backgroundColor: '#00C853', // Green color from image
+    backgroundColor: '#00C853',
   },
   inactiveStep: {
     backgroundColor: '#E0E0E0',
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '800', // Very bold
+    fontWeight: '800',
     color: '#000000',
     textAlign: 'center',
     marginBottom: 10,
@@ -212,7 +213,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FF7043',
     borderStyle: 'dashed',
-    borderRadius: 15, // Match rounded look
+    borderRadius: 15,
     backgroundColor: '#FFFFFF',
     paddingVertical: 30,
     alignItems: 'center',
@@ -224,7 +225,7 @@ export const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFF3E0', // Light orange bg
+    backgroundColor: '#FFF3E0',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
@@ -251,5 +252,328 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+
+  // --- New Dashboard Styles ---
+
+  // Main Layout
+  screenContainer: {
+    flex: 1,
+    backgroundColor: '#F8F9FE',
+  },
+  headerContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    marginTop: 2,
+  },
+
+  // Dashboard Grid
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  statsCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statsIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFF0E6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  statsContent: {
+    flex: 1,
+  },
+  statsLabel: {
+    fontSize: 12,
+    color: '#333',
+    marginBottom: 4,
+  },
+  statsValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+
+  // Charts Section
+  chartContainer: {
+    backgroundColor: '#FFFFFF',
+    margin: 16,
+    marginTop: 0,
+    borderRadius: 20,
+    padding: 16,
+    elevation: 2,
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+  },
+  timeFilter: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F1F1',
+    borderRadius: 20,
+  },
+  filterButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  activeFilterButton: {
+    backgroundColor: '#000000',
+  },
+  filterText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  activeFilterText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+
+  // Tabs (Orders/Inventory)
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  pillTab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginRight: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activePillTab: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  pillText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  activePillText: {
+    color: '#FFFFFF',
+  },
+  badge: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    marginLeft: 6,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  activeBadgeText: {
+    color: '#000',
+  },
+
+  // List Items
+  listItemCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    elevation: 2,
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  orderTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    flex: 1,
+  },
+  statusTag: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    backgroundColor: '#FFECB3',
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#FF8F00',
+    fontWeight: '600',
+  },
+  orderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  orderDetailText: {
+    fontSize: 13,
+    color: '#666',
+    marginLeft: 6,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  acceptButton: {
+    backgroundColor: '#00C853',
+    marginRight: 8,
+  },
+  rejectButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FF1744',
+    marginLeft: 8,
+  },
+  acceptText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  rejectText: {
+    color: '#FF1744',
+    fontWeight: '600',
+  },
+
+  // Inventory
+  productImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: '#eee',
+    marginRight: 12,
+  },
+  productCardContent: {
+    flex: 1,
+  },
+  viewProductBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+
+  // --- Add Product Screen Styles ---
+  dashBorderContainer: {
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#FF5722',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  uploadCircleIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFF3E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  dimensionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dimensionInput: {
+    width: '31%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: '#000000',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    textAlign: 'center',
+  },
+  primaryButton: {
+    backgroundColor: '#FF4500',
+    borderRadius: 30,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 40,
+    width: '100%',
+  },
+  primaryButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  outlineButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#FF4500',
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+    width: '100%',
+  },
+  outlineButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FF4500',
   },
 });

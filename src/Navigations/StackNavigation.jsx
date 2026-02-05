@@ -7,6 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // Screens
 import SplashScreen from '../Screens/AuthScreens/SplashScreen';
 import LoginScreen from '../Screens/AuthScreens/LoginScreen';
+import BottomNavigation from './BottomNavigation';
+import ProductDetailScreen from '../Screens/MainScreens/ProductDetailScreen';
+import AddProductScreen from '../Screens/MainScreens/AddProductScreen';
+import ProductAddedSuccessScreen from '../Screens/MainScreens/ProductAddedSuccessScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +27,16 @@ const StackNavigation = () => {
         >
           <Stack.Screen name="SplashScreen" component={SplashScreen} />
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
+          <Stack.Screen name="MainTabs" component={BottomNavigation} />
+          <Stack.Screen
+            name="ProductDetailScreen"
+            component={ProductDetailScreen}
+          />
+          <Stack.Screen name="AddProductScreen" component={AddProductScreen} />
+          <Stack.Screen
+            name="ProductAddedSuccessScreen"
+            component={ProductAddedSuccessScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
