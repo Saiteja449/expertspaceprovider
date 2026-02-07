@@ -3,156 +3,89 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
-  Image,
   TouchableOpacity,
   FlatList,
   TextInput,
 } from 'react-native';
-import { styles as globalStyles } from '../../Globalcss/Globalcss';
-import { SearchIcon } from '../../Icons/DashboardIcons';
-import Svg, { Path } from 'react-native-svg';
+import { styles } from '../../Globalcss/Globalcss';
+import CustomHeader from '../../components/CustomHeader';
+import SearchIcon from '../../../assets/images/searchIcon.svg';
+import FilterIcon from '../../../assets/images/filterIcon.svg';
+import PlusIcon from '../../../assets/images/plusIcon.svg';
+import EyeIcon from '../../../assets/images/eyeIcon.svg';
+import ShareIcon from '../../../assets/images/shareIcon.svg';
+import SofaIcon from '../../../assets/images/sofasvg.svg';
 
-const FilterIcon = () => (
-  <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <Path d="M4 4H20V6H4V4ZM7 10H17V12H7V10ZM10 16H14V18H10V16Z" fill="#666" />
-  </Svg>
-);
+const productsData = [
+  {
+    id: '1',
+    title:
+      'Rosewood 2-Seater Modern Classic Settee Sofa Diwan Chaise Lounge Couch with Pillow for Home and Living Room, Office, Bedroom (Beige Kulfi, Large)',
+    productId: '20957689',
+    category: 'Furniture',
+    stock: 10,
+  },
+  {
+    id: '2',
+    title:
+      'Rosewood 2-Seater Modern Classic Settee Sofa Diwan Chaise Lounge Couch with Pillow for Home and Living Room, Office, Bedroom (Beige Kulfi, Large)',
+    productId: '20957689',
+    category: 'Furniture',
+    stock: 10,
+  },
+  {
+    id: '3',
+    title:
+      'Rosewood 2-Seater Modern Classic Settee Sofa Diwan Chaise Lounge Couch with Pillow for Home and Living Room, Office, Bedroom (Beige Kulfi, Large)',
+    productId: '20957689',
+    category: 'Furniture',
+    stock: 10,
+  },
+];
 
 const InventoryScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('Active');
 
-  const products = [
-    {
-      id: '1',
-      title: 'Rosewood 2-Seater Modern Classic Settee Sofa Diwan...',
-      productId: '20957689',
-      category: 'Furniture',
-      stock: 10,
-      image: 'https://via.placeholder.com/80',
-    },
-    {
-      id: '2',
-      title: 'Rosewood 2-Seater Modern Classic Settee Sofa Diwan...',
-      productId: '20957689',
-      category: 'Furniture',
-      stock: 10,
-      image: 'https://via.placeholder.com/80',
-    },
-  ];
-
-  const renderProductItem = ({ item }) => (
-    <View style={globalStyles.listItemCard}>
-      <View style={{ flexDirection: 'row' }}>
-        <Image source={{ uri: item.image }} style={globalStyles.productImage} />
-        <View style={globalStyles.productCardContent}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: '#000',
-              marginBottom: 5,
-            }}
-          >
+  const RenderProductItem = ({ item }) => (
+    <View style={styles.productCard}>
+      <View style={styles.productCardTop}>
+        <View style={styles.productImg}>
+          <SofaIcon width={75} height={75} />
+        </View>
+        <View style={styles.productContent}>
+          <Text style={styles.productTitle} numberOfLines={3}>
             {item.title}
           </Text>
-          <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
-          >
-            <Text style={{ fontSize: 12, color: '#666' }}>Product ID</Text>
-            <Text style={{ fontSize: 12, color: '#000' }}>
-              {item.productId}
-            </Text>
+          <View style={styles.productDataRow}>
+            <Text style={styles.productDataLabel}>Product ID</Text>
+            <Text style={styles.productDataValue}>{item.productId}</Text>
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: 4,
-            }}
-          >
-            <Text style={{ fontSize: 12, color: '#666' }}>Category</Text>
-            <Text style={{ fontSize: 12, color: '#000' }}>{item.category}</Text>
+          <View style={styles.productDataRow}>
+            <Text style={styles.productDataLabel}>Category</Text>
+            <Text style={styles.productDataValue}>{item.category}</Text>
           </View>
         </View>
       </View>
 
-      <View
-        style={{ height: 1, backgroundColor: '#F0F0F0', marginVertical: 12 }}
-      />
+      <View style={styles.productDivider} />
 
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <View>
-          <Text style={{ fontSize: 12, color: '#666' }}>Stock</Text>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#000' }}>
-            {item.stock}
-          </Text>
+      <View style={styles.productFooter}>
+        <View style={styles.stockContainer}>
+          <Text style={styles.stockLabel}>Stock</Text>
+          <Text style={styles.stockValue}>{item.stock}</Text>
         </View>
-
-        <View style={{ flexDirection: 'row' }}>
+        <View style={styles.productActions}>
           <TouchableOpacity
-            style={[globalStyles.viewProductBtn, { marginRight: 10 }]}
+            style={styles.viewDetailBtn}
             onPress={() =>
               navigation.navigate('ProductDetailScreen', { product: item })
             }
           >
-            {/* Eye Icon */}
-            <Svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="black"
-              strokeWidth="2"
-              style={{ marginRight: 4 }}
-            >
-              <Path
-                d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <Path
-                d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: '#000' }}>
-              View Product
-            </Text>
+            <EyeIcon width={20} height={20} />
+            <Text style={styles.viewDetailText}>View Product</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: '#F5F5F5',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {/* Share Icon */}
-            <Svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="black"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <Path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-              <Path d="M16 6l-4-4-4 4" />
-              <Path d="M12 2v13" />
-            </Svg>
+          <TouchableOpacity style={styles.shareBtn}>
+            <ShareIcon width={20} height={20} />
           </TouchableOpacity>
         </View>
       </View>
@@ -160,85 +93,45 @@ const InventoryScreen = ({ navigation }) => {
   );
 
   return (
-    <View style={globalStyles.container}>
-      {/* Header */}
-      <View style={globalStyles.headerContainer}>
-        <Text style={globalStyles.headerTitle}>My Inventory</Text>
+    <View style={styles.screenContainer}>
+      <CustomHeader variant="dashboard" />
+
+      <View style={styles.inventoryHeader}>
+        <Text style={styles.inventoryTitle}>My Inventory</Text>
         <TouchableOpacity
-          style={{
-            backgroundColor: '#FF4500',
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}
+          style={styles.addProductBtn}
           onPress={() => navigation.navigate('AddProductScreen')}
         >
-          <Text
-            style={{
-              color: '#FFF',
-              fontSize: 18,
-              fontWeight: '600',
-              marginRight: 4,
-            }}
-          >
-            +
-          </Text>
-          <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '600' }}>
-            Add Product
-          </Text>
+          <PlusIcon width={14} height={14} />
+          <Text style={styles.addProductText}>Add Product</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Search Bar */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          marginVertical: 12,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: '#FFF',
-            borderRadius: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 12,
-            height: 44,
-            borderWidth: 1,
-            borderColor: '#E0E0E0',
-          }}
-        >
-          <SearchIcon size={20} color="#9E9E9E" />
+      <View style={styles.inventorySearchRow}>
+        <View style={styles.searchBarContainer}>
+          <SearchIcon width={20} height={20} />
           <TextInput
             placeholder="Search..."
-            style={{ flex: 1, paddingHorizontal: 10, fontSize: 14 }}
-            placeholderTextColor="#9E9E9E"
+            style={styles.searchInput}
+            placeholderTextColor="#7F8C8D"
           />
         </View>
-        <TouchableOpacity
-          style={{
-            marginLeft: 10,
-            width: 44,
-            height: 44,
-            backgroundColor: '#FFF',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: '#E0E0E0',
-          }}
-        >
-          <FilterIcon />
+        <TouchableOpacity style={styles.filterBtn}>
+          <FilterIcon width={24} height={24} />
         </TouchableOpacity>
       </View>
 
-      {/* Tabs */}
-      <View style={globalStyles.tabContainer}>
+      <View
+        style={[
+          styles.tabContainer,
+          {
+            backgroundColor: 'transparent',
+            paddingHorizontal: 16,
+            paddingVertical: 0,
+            marginBottom: 16,
+          },
+        ]}
+      >
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <TabPill
             label="Active"
@@ -268,10 +161,10 @@ const InventoryScreen = ({ navigation }) => {
       </View>
 
       <FlatList
-        data={products}
-        renderItem={renderProductItem}
+        data={productsData}
+        renderItem={RenderProductItem}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -280,28 +173,19 @@ const InventoryScreen = ({ navigation }) => {
 
 const TabPill = ({ label, count, active, onPress }) => (
   <TouchableOpacity
-    style={[globalStyles.pillTab, active && globalStyles.activePillTab]}
+    style={[styles.pillTab, active && styles.activePillTab]}
     onPress={onPress}
   >
     <Text
-      style={[globalStyles.pillText, active && globalStyles.activePillText]}
+      style={[
+        styles.pillText,
+        active ? styles.activePillText : { color: '#7F8C8D' },
+      ]}
     >
       {label}
     </Text>
-    <View
-      style={[
-        globalStyles.badge,
-        active
-          ? { backgroundColor: '#FFFFFF' }
-          : { backgroundColor: '#000000' },
-      ]}
-    >
-      <Text
-        style={[
-          globalStyles.badgeText,
-          active ? { color: '#000' } : { color: '#FFF' },
-        ]}
-      >
+    <View style={[styles.badge, active && { backgroundColor: '#FFFFFF' }]}>
+      <Text style={[styles.badgeText, active && { color: '#000000' }]}>
         {count}
       </Text>
     </View>

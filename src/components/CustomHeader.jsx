@@ -6,12 +6,14 @@ import ChatIcon from '../../assets/images/chatIcon.svg';
 import NotificationIcon from '../../assets/images/notificationIcon.svg';
 import GoBackIcon from '../../assets/images/goBackIcon.svg';
 import SearchIcon from '../../assets/images/searchIcon.svg';
+import ShareIcon from '../../assets/images/shareIcon.svg';
 import { styles } from '../Globalcss/Globalcss';
 
 const CustomHeader = ({
   variant = 'dashboard',
   title = '',
-  onSearchPress = () => console.log('Search Pressed'),
+  onRightPress,
+  rightIcon,
   onChatPress = () => console.log('Chat Pressed'),
   onNotificationPress = () => console.log('Notification Pressed'),
   showBadge = true,
@@ -33,9 +35,9 @@ const CustomHeader = ({
 
         <TouchableOpacity
           style={styles.headerIconButton}
-          onPress={onSearchPress}
+          onPress={onRightPress}
         >
-          <SearchIcon width={24} height={24} />
+          {rightIcon ? rightIcon : <SearchIcon width={24} height={24} />}
         </TouchableOpacity>
       </View>
     );
