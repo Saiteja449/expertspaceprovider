@@ -188,7 +188,7 @@ const Step4 = ({ formData, updateField }) => (
 );
 
 const SignupScreen = ({ navigation }) => {
-  const [currentStep, setCurrentStep] = useState(4);
+  const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
 
   const [formData, setFormData] = useState({

@@ -20,7 +20,7 @@ const StackNavigation = () => {
     <SafeAreaView style={styles.safeArea}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="ProductDetailScreen"
+          initialRouteName="AddProductScreen"
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#FFFFFF' }, // Ensure white background for all screens

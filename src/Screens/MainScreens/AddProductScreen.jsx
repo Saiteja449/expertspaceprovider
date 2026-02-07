@@ -5,295 +5,360 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Image,
-  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { styles as globalStyles } from '../../Globalcss/Globalcss';
-import { BackArrowIcon } from '../../Icons/DashboardIcons';
-import Svg, { Path } from 'react-native-svg';
+import { Picker } from '@react-native-picker/picker';
+import LinearGradient from 'react-native-linear-gradient';
+import { styles } from '../../Globalcss/Globalcss';
+import CustomHeader from '../../components/CustomHeader';
+import GradientButton from '../../components/GradientButton';
+import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
+
+// SVG Icons
+import UploadIcon from '../../../assets/images/upload.svg';
+import PlusIcon from '../../../assets/images/plusIcon.svg';
 
 const AddProductScreen = ({ navigation }) => {
   const [step, setStep] = useState(1);
 
-  // Form Stats
+  // Form State
   const [formData, setFormData] = useState({
-    category: '',
-    subCategory: '',
-    brand: '',
+    category: 'Select',
+    subCategory: 'Select',
+    brand: 'Select Brand',
     sku: '',
     productName: '',
     description: '',
-    material: '',
-    color: '',
-    length: '',
-    width: '',
-    height: '',
-    finishType: '',
+    material: 'Select',
+    dimensions: { length: '', width: '', height: '' },
+    finishType: 'Select',
     stock: '',
-    weight: '',
-    status: '',
+    weight: '80kg',
+    status: 'In Stock',
     sellingPrice: '',
     mrp: '',
   });
+
+  // Dynamic Color Variants state
+  const [colorVariants, setColorVariants] = useState([
+    { id: 1, color: 'Select', images: [] },
+  ]);
+
+  const addColorVariant = () => {
+    setColorVariants([
+      ...colorVariants,
+      { id: Date.now(), color: 'Select', images: [] },
+    ]);
+  };
+
+  const removeColorVariant = id => {
+    if (colorVariants.length > 1) {
+      setColorVariants(colorVariants.filter(v => v.id !== id));
+    }
+  };
+
+  const updateColorVariant = (id, field, value) => {
+    setColorVariants(
+      colorVariants.map(v => (v.id === id ? { ...v, [field]: value } : v)),
+    );
+  };
 
   const handleNext = () => {
     setStep(2);
   };
 
   const handlePublish = () => {
-    // Here you would define your API call or logic to save the product
+    console.log('Publishing Product:', { ...formData, colorVariants });
     navigation.navigate('ProductAddedSuccessScreen');
   };
 
-  return (
-    <View style={globalStyles.screenContainer}>
-      {/* Header */}
-      <View style={globalStyles.headerContainer}>
-        <TouchableOpacity
-          onPress={() => (step === 1 ? navigation.goBack() : setStep(1))}
-          style={{ padding: 4 }}
-        >
-          <BackArrowIcon size={24} />
-        </TouchableOpacity>
-        <Text style={globalStyles.headerTitle}>Add Product</Text>
-        <View style={{ width: 32 }} />
+  // Dummy Data
+  const categories = ['Select', 'Furniture', 'Electronics', 'Clothing'];
+  const subCategories = ['Select', 'Sofa', 'Table', 'Chair'];
+  const brands = ['Select Brand', 'Brand A', 'Brand B', 'Brand C'];
+  const materials = ['Select', 'Teak Wood', 'Rosewood', 'Metal', 'MDF'];
+  const colors = ['Select', 'Beige', 'Black', 'Brown', 'Grey', 'Red'];
+  const finishes = ['Select', 'Glossy', 'Matte', 'Natural'];
+  const statuses = ['In Stock', 'Out of Stock'];
+
+  const renderStep1 = () => (
+    <View style={{ padding: 16 }}>
+      <Label text="Select category" />
+      <CustomPicker
+        selectedValue={formData.category}
+        onValueChange={val => setFormData({ ...formData, category: val })}
+        items={categories}
+      />
+
+      <Label text="Select Sub category" />
+      <CustomPicker
+        selectedValue={formData.subCategory}
+        onValueChange={val => setFormData({ ...formData, subCategory: val })}
+        items={subCategories}
+      />
+
+      <Label text="Brand" />
+      <CustomPicker
+        selectedValue={formData.brand}
+        onValueChange={val => setFormData({ ...formData, brand: val })}
+        items={brands}
+      />
+
+      <Label text="SKU" />
+      <TextInput
+        style={styles.addProductInput}
+        placeholder="Enter SKU"
+        placeholderTextColor="#9E9E9E"
+        value={formData.sku}
+        onChangeText={val => setFormData({ ...formData, sku: val })}
+      />
+
+      <Label text="Upload Primary Image" />
+      <UploadBox />
+
+      <Label text="Upload Other Images" />
+      <UploadBox />
+
+      <Label text="Product Name" />
+      <TextInput
+        style={styles.addProductInput}
+        placeholder="Enter name"
+        placeholderTextColor="#9E9E9E"
+        value={formData.productName}
+        onChangeText={val => setFormData({ ...formData, productName: val })}
+      />
+
+      <Label text="Product Description" />
+      <View style={styles.addProductDescriptionContainer}>
+        <TextInput
+          style={styles.addProductDescriptionInput}
+          placeholder="Description enter here..."
+          placeholderTextColor="#9E9E9E"
+          multiline
+          maxLength={1000}
+          value={formData.description}
+          onChangeText={val => setFormData({ ...formData, description: val })}
+        />
+        <Text style={styles.addProductCharCount}>
+          {formData.description.length}/1000
+        </Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 50 }}>
-        {step === 1 ? (
-          <>
-            {/* Step 1 Form */}
-            <InputLabel label="Select category" />
-            <DropdownPlaceholder placeholder="Select" />
+      <GradientButton
+        title="Next"
+        onPress={handleNext}
+        style={{ marginTop: 24, marginBottom: 40 }}
+      />
+    </View>
+  );
 
-            <InputLabel label="Select Sub category" />
-            <DropdownPlaceholder placeholder="Select" />
+  const renderStep2 = () => (
+    <View style={{ padding: 16 }}>
+      <Label text="Material" />
+      <CustomPicker
+        selectedValue={formData.material}
+        onValueChange={val => setFormData({ ...formData, material: val })}
+        items={materials}
+      />
 
-            <InputLabel label="Brand" />
-            <DropdownPlaceholder placeholder="Select Brand" />
+      <Label text="Color Option" />
+      {colorVariants.map((variant, index) => (
+        <View key={variant.id} style={styles.colorOptionCard}>
+          <View style={styles.colorOptionHeader}>
+            <Text style={styles.colorOptionTitle}>
+              Color Variant {index + 1}
+            </Text>
+            {colorVariants.length > 1 && (
+              <TouchableOpacity onPress={() => removeColorVariant(variant.id)}>
+                <Text style={styles.removeColorText}>Remove</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-            <InputLabel label="SKU" />
-            <View style={globalStyles.inputContainer}>
-              <TextInput
-                style={globalStyles.inputField}
-                placeholder="Enter SKU"
-                placeholderTextColor="#9E9E9E"
-              />
-            </View>
+          <CustomPicker
+            selectedValue={variant.color}
+            onValueChange={val => updateColorVariant(variant.id, 'color', val)}
+            items={colors}
+          />
 
-            <InputLabel label="Upload Primary Image" />
-            <UploadBox
-              label="Upload file here"
-              subLabel="Minimum file size 50mb, jpeg,png,mp4"
-              isPrimary={true}
-            />
+          <View style={{ marginTop: 12 }}>
+            <UploadBox hint="Upload images for this color" />
+          </View>
+        </View>
+      ))}
 
-            <InputLabel label="Upload Other Images" />
-            <UploadBox
-              label="Upload file here"
-              subLabel="Minimum file size 50mb, jpeg,png,mp4"
-            />
+      <TouchableOpacity style={styles.addColorBtn} onPress={addColorVariant}>
+        <PlusIcon width={16} height={16} />
+        <Text style={styles.addColorText}>Add color variant</Text>
+      </TouchableOpacity>
 
-            <InputLabel label="Product Name" />
-            <View style={globalStyles.inputContainer}>
-              <TextInput
-                style={globalStyles.inputField}
-                placeholder="Enter name"
-                placeholderTextColor="#9E9E9E"
-              />
-            </View>
+      <Label text="Dimensions" />
+      <View style={styles.addProductDimensionRow}>
+        <TextInput
+          style={styles.addProductDimensionInput}
+          placeholder="Length"
+          placeholderTextColor="#9E9E9E"
+          value={formData.dimensions.length}
+          onChangeText={val =>
+            setFormData({
+              ...formData,
+              dimensions: { ...formData.dimensions, length: val },
+            })
+          }
+        />
+        <TextInput
+          style={styles.addProductDimensionInput}
+          placeholder="Width"
+          placeholderTextColor="#9E9E9E"
+          value={formData.dimensions.width}
+          onChangeText={val =>
+            setFormData({
+              ...formData,
+              dimensions: { ...formData.dimensions, width: val },
+            })
+          }
+        />
+        <TextInput
+          style={styles.addProductDimensionInput}
+          placeholder="Height"
+          placeholderTextColor="#9E9E9E"
+          value={formData.dimensions.height}
+          onChangeText={val =>
+            setFormData({
+              ...formData,
+              dimensions: { ...formData.dimensions, height: val },
+            })
+          }
+        />
+      </View>
 
-            <InputLabel label="Product Description" />
-            <View style={[globalStyles.inputContainer, { height: 150 }]}>
-              <TextInput
-                style={[
-                  globalStyles.inputField,
-                  { height: 150, textAlignVertical: 'top', paddingTop: 20 },
-                ]}
-                placeholder="Description enter here..."
-                placeholderTextColor="#9E9E9E"
-                multiline={true}
-              />
-              <Text
-                style={{
-                  position: 'absolute',
-                  bottom: 15,
-                  right: 20,
-                  color: '#9E9E9E',
-                  fontSize: 12,
-                }}
-              >
-                0/1000
-              </Text>
-            </View>
+      <Label text="Finish Type" />
+      <CustomPicker
+        selectedValue={formData.finishType}
+        onValueChange={val => setFormData({ ...formData, finishType: val })}
+        items={finishes}
+      />
 
-            <TouchableOpacity
-              style={globalStyles.primaryButton}
-              onPress={handleNext}
-            >
-              <Text style={globalStyles.primaryButtonText}>Next</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            {/* Step 2 Form */}
-            <InputLabel label="Material" />
-            <DropdownPlaceholder placeholder="Select" />
+      <Label text="Stock" />
+      <TextInput
+        style={styles.addProductInput}
+        placeholder="Enter Stock"
+        placeholderTextColor="#9E9E9E"
+        keyboardType="numeric"
+        value={formData.stock}
+        onChangeText={val => setFormData({ ...formData, stock: val })}
+      />
 
-            <InputLabel label="Color Option" />
-            <DropdownPlaceholder placeholder="Select" />
+      <Label text="Item Weight" />
+      <TextInput
+        style={styles.addProductInput}
+        placeholder="80kg"
+        placeholderTextColor="#9E9E9E"
+        value={formData.weight}
+        onChangeText={val => setFormData({ ...formData, weight: val })}
+      />
 
-            <InputLabel label="Dimensions" />
-            <View
-              style={[globalStyles.dimensionContainer, { marginBottom: 20 }]}
-            >
-              <TextInput
-                style={globalStyles.dimensionInput}
-                placeholder="Length"
-                placeholderTextColor="#9E9E9E"
-              />
-              <TextInput
-                style={globalStyles.dimensionInput}
-                placeholder="Width"
-                placeholderTextColor="#9E9E9E"
-              />
-              <TextInput
-                style={globalStyles.dimensionInput}
-                placeholder="Height"
-                placeholderTextColor="#9E9E9E"
-              />
-            </View>
+      <Label text="Status" />
+      <CustomPicker
+        selectedValue={formData.status}
+        onValueChange={val => setFormData({ ...formData, status: val })}
+        items={statuses}
+      />
 
-            <InputLabel label="Finish Type" />
-            <DropdownPlaceholder placeholder="Select" />
+      <Label text="Selling Price" />
+      <TextInput
+        style={styles.addProductInput}
+        placeholder="Enter Selling Price"
+        placeholderTextColor="#9E9E9E"
+        keyboardType="numeric"
+        value={formData.sellingPrice}
+        onChangeText={val => setFormData({ ...formData, sellingPrice: val })}
+      />
 
-            <InputLabel label="Stock" />
-            <View style={globalStyles.inputContainer}>
-              <TextInput
-                style={globalStyles.inputField}
-                placeholder="Enter Stock"
-                placeholderTextColor="#9E9E9E"
-              />
-            </View>
+      <Label text="Actual MRP" />
+      <TextInput
+        style={styles.addProductInput}
+        placeholder="Enter Actual MRP"
+        placeholderTextColor="#9E9E9E"
+        keyboardType="numeric"
+        value={formData.mrp}
+        onChangeText={val => setFormData({ ...formData, mrp: val })}
+      />
 
-            <InputLabel label="Item Weight" />
-            <View style={globalStyles.inputContainer}>
-              <TextInput
-                style={globalStyles.inputField}
-                placeholder="80kg"
-                placeholderTextColor="#9E9E9E"
-              />
-            </View>
+      <GradientButton
+        title="Publish Product"
+        onPress={handlePublish}
+        style={{ marginTop: 24, marginBottom: 40 }}
+      />
+    </View>
+  );
 
-            <InputLabel label="Status" />
-            <DropdownPlaceholder placeholder="In Stock" />
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.screenContainer}
+    >
+      <CustomHeader
+        variant="internal"
+        title="Add Product"
+        onRightPress={() => {}}
+      />
 
-            <InputLabel label="Selling Price" />
-            <View style={globalStyles.inputContainer}>
-              <TextInput
-                style={globalStyles.inputField}
-                placeholder="Enter Selling Price"
-                placeholderTextColor="#9E9E9E"
-              />
-            </View>
-
-            <InputLabel label="Actual MRP" />
-            <View style={globalStyles.inputContainer}>
-              <TextInput
-                style={globalStyles.inputField}
-                placeholder="Enter Actual MRP"
-                placeholderTextColor="#9E9E9E"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={globalStyles.primaryButton}
-              onPress={handlePublish}
-            >
-              <Text style={globalStyles.primaryButtonText}>
-                Publish Product
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {step === 1 ? renderStep1() : renderStep2()}
+        <View style={{ height: 40 }} />
       </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+// Sub-components
+const Label = ({ text }) => <Text style={styles.addProductLabel}>{text}</Text>;
+
+const CustomPicker = ({ selectedValue, onValueChange, items }) => {
+  const isPlaceholder = selectedValue.includes('Select');
+
+  return (
+    <View style={styles.pickerContainer}>
+      <Text
+        style={
+          isPlaceholder ? styles.pickerPlaceholderText : styles.pickerValueText
+        }
+      >
+        {selectedValue}
+      </Text>
+
+      <View style={styles.pickerIconContainer}>
+        <ArrowDownIcon size={16} color="#9E9E9E" />
+      </View>
+
+      <Picker
+        selectedValue={selectedValue}
+        onValueChange={onValueChange}
+        style={styles.pickerStyle}
+        dropdownIconColor="transparent" // Hide default icon where possible
+      >
+        {items.map((item, index) => (
+          <Picker.Item key={index} label={item} value={item} />
+        ))}
+      </Picker>
     </View>
   );
 };
 
-const InputLabel = ({ label }) => (
-  <Text
-    style={[
-      globalStyles.inputLabel,
-      { marginLeft: 0, marginBottom: 10, fontSize: 16 },
-    ]}
-  >
-    {label}
-  </Text>
-);
-
-const DropdownPlaceholder = ({ placeholder }) => (
-  <View
-    style={[
-      globalStyles.inputField,
-      {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
-      },
-    ]}
-  >
-    <Text style={{ color: '#9E9E9E' }}>{placeholder}</Text>
-    <Svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#9E9E9E"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <Path d="M6 9l6 6 6-6" />
-    </Svg>
-  </View>
-);
-
-const UploadBox = ({ label, subLabel, isPrimary }) => (
-  <View style={{ marginBottom: 20 }}>
-    <View
-      style={[
-        globalStyles.dashBorderContainer,
-        isPrimary ? { borderColor: '#FF5722' } : { borderColor: '#FF5722' },
-      ]}
-    >
-      <View style={globalStyles.uploadIconCircle}>
-        <Svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#FF5722"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <Path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <Path d="M17 8l-5-5-5 5" />
-          <Path d="M12 3v12" />
-        </Svg>
+const UploadBox = ({ hint = 'Minimum file size 50mb, jpeg,png,mp4' }) => (
+  <View style={{ marginBottom: 4 }}>
+    <TouchableOpacity style={styles.addProductUploadContainer}>
+      <View style={styles.addProductUploadRow}>
+        <UploadIcon width={41} height={41} />
+        <View>
+          <Text style={styles.uploadLabelText}>Upload file here</Text>
+          <Text style={styles.uploadSelectText}>Select file</Text>
+        </View>
       </View>
-      <View style={{ alignItems: 'center' }}>
-        <Text style={{ color: '#9E9E9E', fontSize: 14 }}>{label}</Text>
-        <Text style={{ color: '#FF5722', fontWeight: '700', fontSize: 14 }}>
-          Select file
-        </Text>
-      </View>
-    </View>
-    <Text style={{ fontSize: 12, color: '#9E9E9E', marginTop: 8 }}>
-      {subLabel}
-    </Text>
+    </TouchableOpacity>
+    <Text style={styles.uploadHintText}>{hint}</Text>
   </View>
 );
 
