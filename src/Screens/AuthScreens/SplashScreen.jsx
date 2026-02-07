@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StatusBar } from 'react-native';
 import { styles } from '../../Globalcss/Globalcss';
-import SplashLogo from '../../../assets/images/SplashLogo.svg';
+import SplashLogo from '../../../assets/images/LogoProvider.svg';
 
 const SplashScreen = ({ navigation }) => {
-  // Optional: Auto-navigate logic could go here if requested, but user just asked for design.
   // useEffect(() => {
   //   const timer = setTimeout(() => {
   //     navigation.replace('LoginScreen');

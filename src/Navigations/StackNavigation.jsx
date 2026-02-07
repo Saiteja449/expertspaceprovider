@@ -19,7 +19,7 @@ const StackNavigation = () => {
     <SafeAreaView style={styles.safeArea}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="SplashScreen"
+          initialRouteName="LoginScreen"
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#FFFFFF' }, // Ensure white background for all screens

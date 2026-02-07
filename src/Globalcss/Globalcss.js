@@ -1,4 +1,5 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import { font } from '../utils/fontFamilies';
 
 const { width, height } = Dimensions.get('window');
 
@@ -13,7 +14,7 @@ export const styles = StyleSheet.create({
   },
   logoSection: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 32,
     width: 240,
   },
   logoContainer: {
@@ -22,92 +23,77 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 0,
   },
-  supplierBadge: {
-    backgroundColor: '#FF1744',
-    borderRadius: 15,
-    paddingHorizontal: 12,
-    paddingVertical: 2,
-    alignSelf: 'flex-end',
-    marginTop: -15,
-    transform: [{ translateX: 10 }],
-  },
   supplierText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontFamily:font
+    fontFamily: font.REGULAR,
     textTransform: 'capitalize',
   },
   tagline: {
-    fontSize: 18,
+    fontSize: 24,
     color: '#000000',
     textAlign: 'center',
-    fontWeight: '400',
-    lineHeight: 28,
+    fontFamily: font.MEDIUM,
+    lineHeight: 32,
     maxWidth: width * 0.8,
   },
   boldText: {
     fontWeight: 'bold',
   },
-  // Login Screen Styles
   loginContainer: {
     flex: 1,
-    backgroundColor: '#F8F9FE',
+    backgroundColor: '#FFFFFF',
   },
   loginScrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingTop: 60,
     paddingBottom: 40,
     alignItems: 'center',
   },
   loginHeader: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 24,
     width: '100%',
   },
   welcomeText: {
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 32,
     color: '#000000',
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 16,
     textAlign: 'center',
+    fontFamily: font.BOLD,
   },
   loginSubtitle: {
-    fontSize: 16,
+    fontSize: 20,
     color: '#4A4A4A',
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
+    fontFamily: font.MEDIUM,
+    marginBottom: 8,
   },
   inputContainer: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
     color: '#333333',
-    fontWeight: '600',
+    fontFamily: font.MEDIUM,
     marginBottom: 8,
     marginLeft: 4,
   },
   inputField: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 30,
-    paddingVertical: 14,
+    borderRadius: 72,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    fontSize: 16,
+    fontSize: 14,
     color: '#000000',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 3.84,
-    elevation: 2,
+    fontFamily: font.MEDIUM,
+    borderColor: '#E6EAF1',
   },
   rowContainer: {
     flexDirection: 'row',
@@ -138,50 +124,33 @@ export const styles = StyleSheet.create({
   rememberText: {
     fontSize: 14,
     color: '#333333',
+    fontFamily: font.REGULAR,
   },
   forgotPasswordText: {
     fontSize: 14,
     color: '#333333',
-    fontWeight: '500',
+    fontFamily: font.REGULAR,
   },
   loginButton: {
-    backgroundColor: '#FF4500',
-    borderRadius: 30,
-    width: '100%',
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 20,
-    shadowColor: '#FF4500',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
   },
-  loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
+  loginButtonText: {},
   footerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 16,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666666',
+    fontFamily: font.REGULAR,
   },
   createAccountText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#FF5722',
-    fontWeight: '700',
+    fontFamily: font.SEMI_BOLD,
     marginLeft: 5,
   },
-  // Signup Screen Styles
   progressContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -203,7 +172,7 @@ export const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: font.REGULAR,
     color: '#000000',
     textAlign: 'center',
     marginBottom: 10,
@@ -236,17 +205,19 @@ export const styles = StyleSheet.create({
   uploadMainText: {
     fontSize: 14,
     color: '#9E9E9E',
+    fontFamily: font.REGULAR,
   },
   uploadSelectText: {
     fontSize: 14,
     color: '#FF5722',
-    fontWeight: '700',
+    fontFamily: font.REGULAR,
   },
   uploadSubText: {
     fontSize: 12,
     color: '#BDBDBD',
     marginTop: 10,
     alignSelf: 'flex-start',
+    fontFamily: font.REGULAR,
   },
   dropdownField: {
     flexDirection: 'row',
@@ -276,13 +247,14 @@ export const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: font.REGULAR,
     color: '#000000',
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#7F8C8D',
     marginTop: 2,
+    fontFamily: font.REGULAR,
   },
 
   // Dashboard Grid
@@ -322,10 +294,11 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333',
     marginBottom: 4,
+    fontFamily: font.REGULAR,
   },
   statsValue: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: font.REGULAR,
     color: '#000',
   },
 
@@ -346,7 +319,7 @@ export const styles = StyleSheet.create({
   },
   chartTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.REGULAR,
     color: '#000',
   },
   timeFilter: {
@@ -365,10 +338,11 @@ export const styles = StyleSheet.create({
   filterText: {
     fontSize: 12,
     color: '#666',
+    fontFamily: font.REGULAR,
   },
   activeFilterText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontFamily: font.REGULAR,
   },
 
   // Tabs (Orders/Inventory)
@@ -396,7 +370,7 @@ export const styles = StyleSheet.create({
   pillText: {
     fontSize: 14,
     color: '#333',
-    fontWeight: '500',
+    fontFamily: font.REGULAR,
   },
   activePillText: {
     color: '#FFFFFF',
@@ -410,7 +384,7 @@ export const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: 'bold',
+    fontFamily: font.REGULAR,
     color: '#000',
   },
   activeBadgeText: {
@@ -433,7 +407,7 @@ export const styles = StyleSheet.create({
   },
   orderTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: font.REGULAR,
     color: '#000',
     flex: 1,
   },
@@ -446,7 +420,7 @@ export const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     color: '#FF8F00',
-    fontWeight: '600',
+    fontFamily: font.REGULAR,
   },
   orderRow: {
     flexDirection: 'row',
@@ -456,6 +430,7 @@ export const styles = StyleSheet.create({
   orderDetailText: {
     fontSize: 13,
     color: '#666',
+    fontFamily: font.REGULAR,
     marginLeft: 6,
   },
   actionButtons: {
@@ -482,11 +457,11 @@ export const styles = StyleSheet.create({
   },
   acceptText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontFamily: font.REGULAR,
   },
   rejectText: {
     color: '#FF1744',
-    fontWeight: '600',
+    fontFamily: font.REGULAR,
   },
 
   // Inventory
@@ -557,7 +532,7 @@ export const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.REGULAR,
     color: '#FFFFFF',
   },
   outlineButton: {
@@ -573,7 +548,7 @@ export const styles = StyleSheet.create({
   },
   outlineButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: font.REGULAR,
     color: '#FF4500',
   },
 });

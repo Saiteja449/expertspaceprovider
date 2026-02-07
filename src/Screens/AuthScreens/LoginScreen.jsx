@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import SplashLogo from '../../../assets/images/SplashLogo.svg';
 import { styles } from '../../Globalcss/Globalcss';
+import GradientButton from '../../components/GradientButton';
+import LinearGradient from 'react-native-linear-gradient';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('demo1234@gmail.com');
@@ -19,7 +21,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.loginContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FE" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -29,8 +31,27 @@ const LoginScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.loginHeader}>
-            <View style={{ marginBottom: 20 }}>
+          <View style={[styles.loginHeader]}>
+            <LinearGradient
+              colors={[
+                'rgba(255,255,255,0)',
+                'rgba(255,140,0,0.1)',
+                'rgba(255,140,0,0.2)',
+              ]}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 100,
+                zIndex: -1,
+                marginHorizontal: -16,
+                borderBottomLeftRadius: 30,
+                borderBottomRightRadius: 30,
+                paddingBottom: 24,
+              }}
+            />
+            <View style={{ marginBottom: 16 }}>
               <SplashLogo width={180} height={60} />
             </View>
             <Text style={styles.welcomeText}>Welcome Back</Text>
@@ -40,7 +61,7 @@ const LoginScreen = ({ navigation }) => {
             <Text
               style={[
                 styles.loginSubtitle,
-                { fontSize: 13, color: '#777', marginTop: 8 },
+                { fontSize: 13, color: '#777', marginBottom: 24 },
               ]}
             >
               Access your supplier dashboard to track orders, manage inventory,
@@ -101,13 +122,11 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.loginButton}
+          <GradientButton
+            title="Login"
             onPress={() => console.log('Login Pressed')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.loginButtonText}>Login</Text>
-          </TouchableOpacity>
+            colors={['#FF1744', '#FF8C00']}
+          />
 
           <View style={styles.footerContainer}>
             <Text style={styles.footerText}>Don't have an account?</Text>
