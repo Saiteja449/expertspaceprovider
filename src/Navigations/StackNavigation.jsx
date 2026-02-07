@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // Screens
 import SplashScreen from '../Screens/AuthScreens/SplashScreen';
 import LoginScreen from '../Screens/AuthScreens/LoginScreen';
+import SignupScreen from '../Screens/AuthScreens/SignupScreen';
 import BottomNavigation from './BottomNavigation';
 import ProductDetailScreen from '../Screens/MainScreens/ProductDetailScreen';
 import AddProductScreen from '../Screens/MainScreens/AddProductScreen';
@@ -19,7 +20,7 @@ const StackNavigation = () => {
     <SafeAreaView style={styles.safeArea}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="LoginScreen"
+          initialRouteName="SignupScreen"
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#FFFFFF' }, // Ensure white background for all screens
@@ -27,6 +28,7 @@ const StackNavigation = () => {
         >
           <Stack.Screen name="SplashScreen" component={SplashScreen} />
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
+          <Stack.Screen name="SignupScreen" component={SignupScreen} />
           <Stack.Screen name="MainTabs" component={BottomNavigation} />
           <Stack.Screen
             name="ProductDetailScreen"

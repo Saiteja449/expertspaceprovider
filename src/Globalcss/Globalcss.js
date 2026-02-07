@@ -47,13 +47,13 @@ export const styles = StyleSheet.create({
   loginScrollContainer: {
     flexGrow: 1,
     paddingHorizontal: 16,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 40,
     alignItems: 'center',
   },
   loginHeader: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
     width: '100%',
   },
   welcomeText: {
@@ -65,11 +65,10 @@ export const styles = StyleSheet.create({
     fontFamily: font.BOLD,
   },
   loginSubtitle: {
-    fontSize: 20,
-    color: '#4A4A4A',
+    fontSize: 14,
+    color: '#78828A',
     textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
+    lineHeight: 22,
     fontFamily: font.MEDIUM,
     marginBottom: 8,
   },
@@ -79,7 +78,7 @@ export const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: '#333333',
+    color: '#111111',
     fontFamily: font.MEDIUM,
     marginBottom: 8,
     marginLeft: 4,
@@ -154,14 +153,14 @@ export const styles = StyleSheet.create({
   progressContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 30,
-    marginTop: 20,
+    marginBottom: 16,
     width: '100%',
+    paddingHorizontal: 8,
   },
   progressBar: {
     flex: 1,
     height: 6,
-    borderRadius: 3,
+    borderRadius: 40,
     marginHorizontal: 4,
   },
   activeStep: {
@@ -171,11 +170,11 @@ export const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   sectionTitle: {
-    fontSize: 22,
-    fontFamily: font.REGULAR,
+    fontSize: 24,
+    fontFamily: font.BOLD,
     color: '#000000',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   uploadContainer: {
     width: '100%',
@@ -187,8 +186,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
-    marginBottom: 5,
+    flexDirection: 'row',
+    gap: 10,
   },
   uploadIconCircle: {
     width: 60,
