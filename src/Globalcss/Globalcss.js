@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
   supplierText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily:font
     textTransform: 'capitalize',
   },
   tagline: {

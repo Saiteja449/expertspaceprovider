@@ -1,0 +1,20 @@
+export const font = {
+  THIN: 'Inter_18pt-Thin',
+  EXTRA_LIGHT: 'Inter_18pt-ExtraLight',
+  LIGHT: 'Inter_18pt-ExtraLight', // Using ExtraLight as Light alternative
+  REGULAR: 'Inter_18pt-Regular',
+  MEDIUM: 'Inter_18pt-Medium',
+  SEMI_BOLD: 'Inter_18pt-SemiBold',
+  BOLD: 'Inter_18pt-Bold',
+  EXTRA_BOLD: 'Inter_18pt-ExtraBold',
+  BLACK: 'Inter_18pt-Black',
+  THIN_ITALIC: 'Inter_18pt-Italic',
+  EXTRA_LIGHT_ITALIC: 'Inter_18pt-Italic',
+  LIGHT_ITALIC: 'Inter_18pt-Italic',
+  REGULAR_ITALIC: 'Inter_18pt-Italic',
+  MEDIUM_ITALIC: 'Inter_18pt-Italic',
+  SEMI_BOLD_ITALIC: 'Inter_18pt-Italic',
+  BOLD_ITALIC: 'Inter_18pt-BoldItalic',
+  EXTRA_BOLD_ITALIC: 'Inter_18pt-BoldItalic',
+  BLACK_ITALIC: 'Inter_18pt-BoldItalic',
+};
