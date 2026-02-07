@@ -1,14 +1,47 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Logo from '../../assets/images/LogoProvider.svg';
 import ChatIcon from '../../assets/images/chatIcon.svg';
 import NotificationIcon from '../../assets/images/notificationIcon.svg';
-import Logo from '../../assets/images/LogoProvider.svg'; // Using LogoProvider as the brand logo
+import GoBackIcon from '../../assets/images/goBackIcon.svg';
+import SearchIcon from '../../assets/images/searchIcon.svg';
 import { styles } from '../Globalcss/Globalcss';
 
-const CustomHeader = () => {
-  // const navigation = useNavigation();
+const CustomHeader = ({
+  variant = 'dashboard',
+  title = '',
+  onSearchPress = () => console.log('Search Pressed'),
+  onChatPress = () => console.log('Chat Pressed'),
+  onNotificationPress = () => console.log('Notification Pressed'),
+  showBadge = true,
+  badgeCount = '02',
+}) => {
+  const navigation = useNavigation();
 
+  if (variant === 'internal') {
+    return (
+      <View style={styles.ordersHeader}>
+        <TouchableOpacity
+          style={styles.headerIconButton}
+          onPress={() => navigation.goBack()}
+        >
+          <GoBackIcon width={24} height={24} />
+        </TouchableOpacity>
+
+        <Text style={styles.ordersTitle}>{title}</Text>
+
+        <TouchableOpacity
+          style={styles.headerIconButton}
+          onPress={onSearchPress}
+        >
+          <SearchIcon width={24} height={24} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Dashboard variant (default)
   return (
     <View style={styles.customHeaderContainer}>
       <View style={styles.customHeaderTopRow}>
@@ -18,16 +51,18 @@ const CustomHeader = () => {
         <View style={styles.customHeaderActionsContainer}>
           <TouchableOpacity
             style={styles.customHeaderIconButton}
-            // onPress={() => console.log('Chat')}
+            onPress={onChatPress}
           >
-            <View style={styles.customHeaderBadgeContainer}>
-              <Text style={styles.customHeaderBadgeText}>02</Text>
-            </View>
+            {showBadge && (
+              <View style={styles.customHeaderBadgeContainer}>
+                <Text style={styles.customHeaderBadgeText}>{badgeCount}</Text>
+              </View>
+            )}
             <ChatIcon width={24} height={24} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.customHeaderIconButton}
-            // onPress={() => console.log('Notifications')}
+            onPress={onNotificationPress}
           >
             <View style={styles.customHeaderDotBadge} />
             <NotificationIcon width={24} height={24} />

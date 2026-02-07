@@ -3,13 +3,18 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
-  Image,
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { styles as globalStyles } from '../../Globalcss/Globalcss';
-import { SearchIcon, BackArrowIcon } from '../../Icons/DashboardIcons';
+import { styles } from '../../Globalcss/Globalcss';
+import CustomHeader from '../../components/CustomHeader';
+import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
+
+// SVG Icons
+import CalenderIcon from '../../../assets/images/calenderIcon.svg';
+import LocationIcon from '../../../assets/images/locationIcon.svg';
+import SofaIcon from '../../../assets/images/sofasvg.svg';
+import DummyProfile from '../../../assets/images/dummyProfile.svg';
 
 // Order Data
 const ordersData = [
@@ -21,8 +26,6 @@ const ordersData = [
     price: '₹ 22,990',
     location: 'Sindhubhawan road, Fox colony',
     customerName: 'Darrell Steward',
-    customerImage: 'https://via.placeholder.com/40', // Placeholder
-    productImage: 'https://via.placeholder.com/80', // Placeholder
   },
   {
     id: '2',
@@ -32,115 +35,82 @@ const ordersData = [
     price: '₹ 22,990',
     location: 'Sindhubhawan road, Fox colony',
     customerName: 'Darrell Steward',
-    customerImage: 'https://via.placeholder.com/40',
-    productImage: 'https://via.placeholder.com/80',
+  },
+  {
+    id: '3',
+    title: '3-seat sofa, grey',
+    status: 'Pending',
+    date: '12 january,2025, 12:34 AM',
+    price: '₹ 22,990',
+    location: 'Sindhubhawan road, Fox colony',
+    customerName: 'Darrell Steward',
   },
 ];
 
 const OrdersScreen = () => {
   const [activeTab, setActiveTab] = useState('Pending');
 
-  const renderOrderItem = ({ item }) => (
-    <View style={globalStyles.listItemCard}>
-      <View style={globalStyles.orderHeader}>
-        <View style={{ flexDirection: 'row', flex: 1 }}>
-          <Image
-            source={{ uri: item.productImage }}
-            style={globalStyles.productImage}
-          />
-          <View style={{ flex: 1 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-              }}
-            >
-              <Text style={globalStyles.orderTitle}>{item.title}</Text>
-              <View style={globalStyles.statusTag}>
-                <Text style={globalStyles.statusText}>{item.status}</Text>
-              </View>
+  const RenderOrderItem = ({ item }) => (
+    <View style={styles.orderCard}>
+      <View style={styles.orderCardTop}>
+        <View style={styles.orderProductImage}>
+          <SofaIcon width={75} height={75} />
+        </View>
+        <View style={styles.orderInfo}>
+          <View style={styles.orderInfoTop}>
+            <Text style={styles.orderProductName}>{item.title}</Text>
+            <View style={styles.pendingTag}>
+              <Text style={styles.pendingTagText}>{item.status}</Text>
             </View>
+          </View>
 
-            <View style={{ marginTop: 8 }}>
-              <View style={globalStyles.orderRow}>
-                <Text style={{ fontSize: 12, color: '#666' }}>
-                  📅 {item.date}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: 'bold',
-                  color: '#000',
-                  marginVertical: 4,
-                }}
-              >
-                {item.price}
-              </Text>
-              <View style={globalStyles.orderRow}>
-                <Text style={{ fontSize: 12, color: '#666' }}>
-                  📍 {item.location}
-                </Text>
-              </View>
-            </View>
+          <View style={styles.orderDateRow}>
+            <CalenderIcon width={16} height={16} />
+            <Text style={styles.orderDetailText}>{item.date}</Text>
+          </View>
+
+          <Text style={styles.orderPrice}>{item.price}</Text>
+
+          <View style={styles.orderLocationRow}>
+            <LocationIcon width={16} height={16} />
+            <Text style={styles.orderDetailText}>{item.location}</Text>
           </View>
         </View>
       </View>
 
-      <View
-        style={{ height: 1, backgroundColor: '#E0E0E0', marginVertical: 10 }}
-      />
+      <View style={styles.customerDivider} />
 
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Image
-          source={{ uri: item.customerImage }}
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            marginRight: 10,
-            backgroundColor: '#ccc',
-          }}
-        />
-        <View>
-          <Text style={{ fontSize: 12, color: '#666' }}>Customer Name</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#000' }}>
-            {item.customerName}
-          </Text>
+      <View style={styles.customerRow}>
+        <View style={styles.customerAvatar}>
+          <DummyProfile width={40} height={40} />
+        </View>
+        <View style={styles.customerInfo}>
+          <Text style={styles.customerLabel}>Customer Name</Text>
+          <Text style={styles.customerName}>{item.customerName}</Text>
         </View>
       </View>
 
-      <View style={globalStyles.actionButtons}>
-        <TouchableOpacity
-          style={[globalStyles.actionButton, globalStyles.acceptButton]}
-        >
-          <Text style={globalStyles.acceptText}>Accept</Text>
+      <View style={styles.orderActionButtons}>
+        <TouchableOpacity style={styles.orderAcceptBtn}>
+          <Text style={styles.orderAcceptText}>Accept</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[globalStyles.actionButton, globalStyles.rejectButton]}
-        >
-          <Text style={globalStyles.rejectText}>Reject</Text>
+        <TouchableOpacity style={styles.orderRejectBtn}>
+          <Text style={styles.orderRejectText}>Reject</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <View style={globalStyles.container}>
-      {/* Header */}
-      <View style={globalStyles.headerContainer}>
-        <TouchableOpacity>
-          <BackArrowIcon size={24} />
-        </TouchableOpacity>
-        <Text style={globalStyles.headerTitle}>Orders</Text>
-        <TouchableOpacity>
-          <SearchIcon size={24} />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.ordersContainer}>
+      <CustomHeader variant="internal" title="Orders" />
 
-      {/* Tabs */}
-      <View style={globalStyles.tabContainer}>
+      <View
+        style={[
+          styles.tabContainer,
+          { backgroundColor: 'transparent', paddingHorizontal: 16 },
+        ]}
+      >
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <TabPill
             label="Pending"
@@ -163,29 +133,19 @@ const OrdersScreen = () => {
         </ScrollView>
       </View>
 
-      {/* Order List Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          paddingHorizontal: 20,
-          marginVertical: 10,
-        }}
-      >
-        <Text style={{ fontSize: 16, fontWeight: '700', color: '#000' }}>
-          Order List
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={{ fontSize: 14, color: '#666' }}>Sort By</Text>
-          {/* Chevron down icon could go here */}
+      <View style={styles.orderListHeader}>
+        <Text style={styles.orderListTitle}>Order List</Text>
+        <View style={styles.sortByContainer}>
+          <Text style={styles.sortByText}>Sort By</Text>
+          <ArrowDownIcon size={12} color="#333" />
         </View>
       </View>
 
       <FlatList
         data={ordersData}
-        renderItem={renderOrderItem}
+        renderItem={RenderOrderItem}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -194,28 +154,19 @@ const OrdersScreen = () => {
 
 const TabPill = ({ label, count, active, onPress }) => (
   <TouchableOpacity
-    style={[globalStyles.pillTab, active && globalStyles.activePillTab]}
+    style={[styles.pillTab, active && styles.activePillTab]}
     onPress={onPress}
   >
     <Text
-      style={[globalStyles.pillText, active && globalStyles.activePillText]}
+      style={[
+        styles.pillText,
+        active ? styles.activePillText : { color: '#7F8C8D' },
+      ]}
     >
       {label}
     </Text>
-    <View
-      style={[
-        globalStyles.badge,
-        active
-          ? { backgroundColor: '#FFFFFF' }
-          : { backgroundColor: '#000000' },
-      ]}
-    >
-      <Text
-        style={[
-          globalStyles.badgeText,
-          active ? { color: '#000' } : { color: '#FFF' },
-        ]}
-      >
+    <View style={[styles.badge, active && { backgroundColor: '#FFFFFF' }]}>
+      <Text style={[styles.badgeText, active && { color: '#000000' }]}>
         {count}
       </Text>
     </View>
