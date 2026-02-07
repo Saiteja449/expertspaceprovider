@@ -4,154 +4,147 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
-import { styles as globalStyles } from '../../Globalcss/Globalcss';
-import {
-  PendingOrderIcon,
-  OutOfStockIcon,
-  TotalProductsIcon,
-  TotalRevenueIcon,
-  NotificationIcon,
-  MessageIcon,
-} from '../../Icons/DashboardIcons';
+import { styles } from '../../Globalcss/Globalcss';
+import { font } from '../../utils/fontFamilies';
+import CustomHeader from '../../components/CustomHeader';
+import PendingOrderIcon from '../../../assets/images/pendingOrderIcon.svg';
+import OutOfStockIcon from '../../../assets/images/outOfStockIcon.svg';
+import TotalProductsIcon from '../../../assets/images/totalProducts.svg';
+import TotalRevenueIcon from '../../../assets/images/totalreve.svg'; // Using this as placeholder
+import CompletedOrderIcon from '../../../assets/images/completedOrderIcon.svg';
+import ReturnOrderIcon from '../../../assets/images/returnOrderIcon.svg';
 import { LineChart } from 'react-native-gifted-charts';
-
 const { width } = Dimensions.get('window');
-
 const HomeScreen = () => {
-  // Dummy Data for Chart
   const lineData = [
-    { value: 5000, label: 'Jan' },
-    { value: 8000, label: 'Feb' },
-    { value: 20000, label: 'Mar' },
-    { value: 8000, label: 'Apr' },
-    { value: 6000, label: 'May' },
-    { value: 4000, label: 'Jun' },
-    { value: 6000, label: 'Jul' },
-    { value: 5000, label: 'Aug' },
-    { value: 9000, label: 'Sep' },
-    { value: 6000, label: 'Oct' },
+    { value: 6.5, label: 'Jan' },
+    { value: 6.2, label: '' },
+    { value: 8, label: 'Feb' },
+    { value: 9.5, label: '' },
+    { value: 20, label: 'Mar' },
+    { value: 9, label: '' },
+    { value: 6, label: 'Apr' },
+    { value: 4.5, label: '' },
+    { value: 6, label: 'May' },
+    { value: 8, label: '' },
+    { value: 4, label: 'Jun' },
+    { value: 4.2, label: '' },
+    { value: 6, label: 'Jul' },
+    { value: 5, label: '' },
+    { value: 6, label: 'Aug' },
+    { value: 9, label: '' },
+    { value: 7, label: 'Sep' },
+    { value: 6, label: '' },
   ];
 
   return (
-    <View style={globalStyles.container}>
-      {/* Header */}
-      <View style={localStyles.header}>
-        <View>
-          <Text style={localStyles.welcomeText}>
+    <View style={styles.screenContainer}>
+      <CustomHeader />
+      <ScrollView
+        contentContainerStyle={styles.dashboardScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.customHeaderWelcomeContainer}>
+          <Text style={styles.customHeaderWelcomeText}>
             Welcome Back!{' '}
-            <Text style={{ fontWeight: '400' }}>TONY'S HOUSE</Text>
+            <Text style={styles.customHeaderBrandName}>TONY’S HOUSE</Text>
           </Text>
-          <Text style={localStyles.subtitle}>
+          <Text style={styles.customHeaderSubtitle}>
             Manage and grow your business
           </Text>
         </View>
-        <View style={localStyles.headerIcons}>
-          <TouchableOpacity style={{ marginRight: 15 }}>
-            <MessageIcon size={24} hasBadge={true} />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <NotificationIcon size={24} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={localStyles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Stats Grid */}
-        <View style={globalStyles.statsGrid}>
+        <View style={styles.statsGrid}>
           <StatsCard
-            icon={<PendingOrderIcon size={22} />}
+            icon={<PendingOrderIcon width={24} height={24} />}
             label="Pending Order"
             value="12"
             bgColor="#FFF0E6"
           />
           <StatsCard
-            icon={<OutOfStockIcon size={22} />}
+            icon={<OutOfStockIcon width={24} height={24} />}
             label="Out of Stock"
             value="34"
             bgColor="#FFF0E6"
           />
-
           <StatsCard
-            icon={<TotalProductsIcon size={22} />}
+            icon={<TotalProductsIcon width={24} height={24} />}
             label="Total Products"
             value="128"
             bgColor="#FFF0E6"
           />
           <StatsCard
-            icon={<TotalRevenueIcon size={22} />}
+            icon={<TotalRevenueIcon width={24} height={24} />}
             label="Total Revenue"
             value="₹ 02,12,235"
             bgColor="#FFF0E6"
           />
 
           <StatsCard
-            icon={<TotalProductsIcon size={22} />} // Reuse or change if new icon needed
+            icon={<CompletedOrderIcon width={24} height={24} />}
             label="Completed Order"
             value="12"
             bgColor="#FFF0E6"
           />
           <StatsCard
-            icon={<OutOfStockIcon size={22} />} // Reuse or change if new icon needed
+            icon={<ReturnOrderIcon width={24} height={24} />}
             label="Return Order"
             value="34"
             bgColor="#FFF0E6"
           />
         </View>
 
-        {/* Business Insights */}
-        <View style={globalStyles.chartContainer}>
-          <View style={globalStyles.chartHeader}>
-            <Text style={globalStyles.chartTitle}>Business Insights</Text>
-          </View>
-
-          {/* Time Filters */}
-          <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+        <View style={styles.chartContainer}>
+          <Text style={styles.chartTitle}>Business Insights</Text>
+          <View style={styles.filterRow}>
             <TouchableOpacity
-              style={[
-                globalStyles.filterButton,
-                globalStyles.activeFilterButton,
-              ]}
+              style={[styles.filterButton, styles.activeFilterButton]}
             >
-              <Text
-                style={[globalStyles.filterText, globalStyles.activeFilterText]}
-              >
+              <Text style={[styles.filterText, styles.activeFilterText]}>
                 Weekly
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={globalStyles.filterButton}>
-              <Text style={globalStyles.filterText}>Monthly</Text>
+            <TouchableOpacity style={styles.filterButton}>
+              <Text style={styles.filterText}>Monthly</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={globalStyles.filterButton}>
-              <Text style={globalStyles.filterText}>Yearly</Text>
+            <TouchableOpacity style={styles.filterButton}>
+              <Text style={styles.filterText}>Yearly</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Chart */}
-          <LineChart
-            data={lineData}
-            color="#FF5722"
-            thickness={3}
-            dataPointsColor="#FF5722"
-            startFillColor="#FF5722"
-            endFillColor="#FF5722"
-            startOpacity={0.2}
-            endOpacity={0.05}
-            initialSpacing={0}
-            noOfSections={5}
-            yAxisTextStyle={{ color: 'gray', fontSize: 10 }}
-            xAxisLabelTextStyle={{ color: 'gray', fontSize: 10 }}
-            rulesColor="lightgray"
-            rulesType="solid"
-            height={200}
-            curved
-            adjustToWidth
-          />
+          <View style={{ marginLeft: -16 }}>
+            <LineChart
+              data={lineData}
+              color="#FF5722"
+              thickness={3}
+              startFillColor="#FF5722"
+              endFillColor="#FF5722"
+              startOpacity={0}
+              endOpacity={0}
+              initialSpacing={10}
+              noOfSections={4}
+              maxValue={25} // Scaled to matches data (25000 -> 25)
+              yAxisTextStyle={{
+                color: '#9E9E9E',
+                fontSize: 10,
+                fontFamily: font.REGULAR,
+              }}
+              xAxisLabelTextStyle={{
+                color: '#9E9E9E',
+                fontSize: 10,
+                fontFamily: font.REGULAR,
+              }}
+              rulesColor="#F0F0F0"
+              rulesType="solid"
+              height={220}
+              width={width - 84}
+              curved
+              hideDataPoints
+              yAxisLabelSuffix="k"
+            />
+          </View>
         </View>
 
         <View style={{ height: 100 }} />
@@ -161,45 +154,15 @@ const HomeScreen = () => {
 };
 
 const StatsCard = ({ icon, label, value, bgColor }) => (
-  <View style={globalStyles.statsCard}>
-    <View
-      style={[globalStyles.statsIconContainer, { backgroundColor: bgColor }]}
-    >
+  <View style={styles.statsCard}>
+    <View style={[styles.statsIconContainer, { backgroundColor: bgColor }]}>
       {icon}
     </View>
-    <View style={globalStyles.statsContent}>
-      <Text style={globalStyles.statsLabel}>{label}</Text>
-      <Text style={globalStyles.statsValue}>{value}</Text>
+    <View style={styles.statsContent}>
+      <Text style={styles.statsLabel}>{label}</Text>
+      <Text style={styles.statsValue}>{value}</Text>
     </View>
   </View>
 );
-
-const localStyles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-    backgroundColor: '#F8F9FE', // Match bg
-  },
-  welcomeText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#7F8C8D',
-    marginTop: 4,
-  },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-});
 
 export default HomeScreen;
