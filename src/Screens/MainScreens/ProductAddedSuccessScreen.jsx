@@ -29,14 +29,16 @@ const ProductAddedSuccessScreen = ({ navigation }) => {
       <View style={styles.successFooter}>
         <TouchableOpacity
           style={styles.successViewProductBtn}
-          onPress={() => navigation.navigate('Inventory')}
+          onPress={() =>
+            navigation.navigate('MainTabs', { screen: 'Inventory' })
+          }
         >
           <Text style={styles.successViewProductText}>View Product</Text>
         </TouchableOpacity>
 
         <GradientButton
           title="Back To Home"
-          onPress={() => navigation.navigate('MainTabs')}
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
         />
       </View>
     </View>

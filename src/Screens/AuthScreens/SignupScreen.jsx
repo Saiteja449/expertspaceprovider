@@ -209,7 +209,7 @@ const SignupScreen = ({ navigation }) => {
       setCurrentStep(currentStep + 1);
     } else {
       console.log('Submit Form', formData);
-      // navigation.navigate('Dashboard');
+      navigation.navigate('MainTabs');
     }
   };
 

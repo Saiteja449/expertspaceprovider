@@ -124,7 +124,7 @@ const LoginScreen = ({ navigation }) => {
 
           <GradientButton
             title="Login"
-            onPress={() => console.log('Login Pressed')}
+            onPress={() => navigation.navigate('MainTabs')}
             colors={['#FF1744', '#FF8C00']}
           />
 

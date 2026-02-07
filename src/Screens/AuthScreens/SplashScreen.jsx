@@ -4,12 +4,12 @@ import { styles } from '../../Globalcss/Globalcss';
 import SplashLogo from '../../../assets/images/LogoProvider.svg';
 
 const SplashScreen = ({ navigation }) => {
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     navigation.replace('LoginScreen');
-  //   }, 3000);
-  //   return () => clearTimeout(timer);
-  // }, [navigation]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.replace('LoginScreen');
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
