@@ -8,16 +8,41 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import SplashLogo from '../../../assets/images/SplashLogo.svg';
 import { styles } from '../../Globalcss/Globalcss';
 import GradientButton from '../../components/GradientButton';
 import LinearGradient from 'react-native-linear-gradient';
+import { useContextState } from '../../context/Context';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('demo1234@gmail.com');
-  const [password, setPassword] = useState('********');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
+  const [errors, setErrors] = useState({});
+  const { login, loading } = useContextState();
+
+  const handleLogin = async () => {
+    setErrors({});
+    let newErrors = {};
+    if (!email) newErrors.email = 'Email is required';
+    if (!password) newErrors.password = 'Password is required';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    try {
+      await login(email, password);
+      // user is set in context, and persisted. 
+      // navigate to next screen
+      navigation.navigate('MainTabs');
+    } catch (error) {
+      Alert.alert('Login Failed', error.response?.data?.message || error.message);
+    }
+  };
 
   return (
     <View style={styles.loginContainer}>
@@ -74,7 +99,10 @@ const LoginScreen = ({ navigation }) => {
             <TextInput
               style={styles.inputField}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (errors.email) setErrors({ ...errors, email: '' });
+              }}
               placeholder="Enter your email"
               placeholderTextColor="#A0A0A0"
               keyboardType="email-address"
@@ -87,7 +115,10 @@ const LoginScreen = ({ navigation }) => {
             <TextInput
               style={styles.inputField}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (errors.password) setErrors({ ...errors, password: '' });
+              }}
               placeholder="Enter your password"
               placeholderTextColor="#A0A0A0"
               secureTextEntry
@@ -122,9 +153,21 @@ const LoginScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {errors.email && (
+            <Text style={{ color: 'red', marginBottom: 5, marginLeft: 5 }}>
+              {errors.email}
+            </Text>
+          )}
+          {errors.password && (
+            <Text style={{ color: 'red', marginBottom: 10, marginLeft: 5 }}>
+              {errors.password}
+            </Text>
+          )}
+
           <GradientButton
             title="Login"
-            onPress={() => navigation.navigate('MainTabs')}
+            onPress={handleLogin}
+            isLoading={loading}
             colors={['#FF1744', '#FF8C00']}
           />
 

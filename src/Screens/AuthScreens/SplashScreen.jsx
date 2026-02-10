@@ -1,14 +1,29 @@
 import React, { useEffect } from 'react';
 import { View, Text, StatusBar } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from '../../Globalcss/Globalcss';
 import SplashLogo from '../../../assets/images/LogoProvider.svg';
 
 const SplashScreen = ({ navigation }) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('LoginScreen');
-    }, 2000);
-    return () => clearTimeout(timer);
+    const checkLogin = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        // We can add a small delay here if needed to show the splash logo for at least some time
+        setTimeout(() => {
+          if (userData) {
+            navigation.replace('MainTabs');
+          } else {
+            navigation.replace('LoginScreen');
+          }
+        }, 2000);
+      } catch (error) {
+        console.error('Splash Check Error:', error);
+        navigation.replace('LoginScreen');
+      }
+    };
+
+    checkLogin();
   }, [navigation]);
 
   return (
