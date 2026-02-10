@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,18 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  Image,
+  BackHandler,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import SplashLogo from '../../../assets/images/SplashLogo.svg';
 import Upload from '../../../assets/images/upload.svg';
 import { styles } from '../../Globalcss/Globalcss';
 import GradientButton from '../../components/GradientButton';
 import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
 import { font } from '../../utils/fontFamilies';
+import apiService from '../../api/apiService';
+import { CommonActions } from '@react-navigation/native';
 
 const Step1 = ({ formData, updateField }) => (
   <View style={{ width: '100%' }}>
@@ -91,41 +96,113 @@ const Step2 = ({ formData, updateField }) => (
         placeholderTextColor="#A0A0A0"
       />
     </View>
-  </View>
-);
 
-const Step3 = ({ formData, updateField }) => (
-  <View style={{ width: '100%' }}>
-    <Text style={styles.sectionTitle}>Business Verification</Text>
-    <Text style={styles.loginSubtitle}>
-      Upload required documents to verify your business and ensure secure
-      transactions.
-    </Text>
-
-    <View style={{ marginTop: 16, width: '100%' }}>
-      <Text style={styles.inputLabel}>Upload Pan Card</Text>
-      <TouchableOpacity style={styles.uploadContainer} activeOpacity={0.7}>
-        <Upload />
-        <View style={styles.uploadTextContainer}>
-          <Text style={styles.uploadMainText}>Upload file here</Text>
-          <Text style={styles.uploadSelectText}>Select file</Text>
-        </View>
-      </TouchableOpacity>
-      <Text style={styles.uploadSubText}>Minimum file size jpeg,png</Text>
-    </View>
-
-    <View style={[styles.inputContainer, { marginTop: 16 }]}>
-      <Text style={styles.inputLabel}>GST No.</Text>
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>Password</Text>
       <TextInput
         style={styles.inputField}
-        value={formData.gstNo}
-        onChangeText={text => updateField('gstNo', text)}
-        placeholder="Enter GST No."
+        value={formData.password}
+        onChangeText={text => updateField('password', text)}
+        placeholder="Enter Password"
         placeholderTextColor="#A0A0A0"
+        secureTextEntry
+      />
+    </View>
+
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>Confirm Password</Text>
+      <TextInput
+        style={styles.inputField}
+        value={formData.confirmPassword}
+        onChangeText={text => updateField('confirmPassword', text)}
+        placeholder="Confirm Password"
+        placeholderTextColor="#A0A0A0"
+        secureTextEntry
       />
     </View>
   </View>
 );
+
+const Step3 = ({ formData, updateField }) => {
+  const handleImagePick = () => {
+    const options = {
+      mediaType: 'photo',
+      includeBase64: true,
+      quality: 0.5,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const source = response.assets[0];
+        const imageUri = `data:${source.type};base64,${source.base64}`;
+        updateField('panImage', imageUri);
+      }
+    });
+  };
+
+  return (
+    <View style={{ width: '100%' }}>
+      <Text style={styles.sectionTitle}>Business Verification</Text>
+      <Text style={styles.loginSubtitle}>
+        Upload required documents to verify your business and ensure secure
+        transactions.
+      </Text>
+
+      <View style={[styles.inputContainer, { marginTop: 16 }]}>
+        <Text style={styles.inputLabel}>PAN Number</Text>
+        <TextInput
+          style={styles.inputField}
+          value={formData.panNumber}
+          onChangeText={text => updateField('panNumber', text)}
+          placeholder="Enter PAN Number"
+          placeholderTextColor="#A0A0A0"
+          autoCapitalize="characters"
+        />
+      </View>
+
+      <View style={{ marginTop: 16, width: '100%' }}>
+        <Text style={styles.inputLabel}>Upload Pan Card</Text>
+        <TouchableOpacity
+          style={styles.uploadContainer}
+          activeOpacity={0.7}
+          onPress={handleImagePick}
+        >
+          {formData.panImage ? (
+            <Image
+              source={{ uri: formData.panImage }}
+              style={{ width: '100%', height: 150, borderRadius: 8 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <>
+              <Upload />
+              <View style={styles.uploadTextContainer}>
+                <Text style={styles.uploadMainText}>Upload file here</Text>
+                <Text style={styles.uploadSelectText}>Select form Gallery</Text>
+              </View>
+            </>
+          )}
+        </TouchableOpacity>
+        <Text style={styles.uploadSubText}>Minimum file size jpeg,png</Text>
+      </View>
+
+      <View style={[styles.inputContainer, { marginTop: 16 }]}>
+        <Text style={styles.inputLabel}>GST No.</Text>
+        <TextInput
+          style={styles.inputField}
+          value={formData.gstNo}
+          onChangeText={text => updateField('gstNo', text)}
+          placeholder="Enter GST No."
+          placeholderTextColor="#A0A0A0"
+        />
+      </View>
+    </View>
+  );
+};
 
 const Step4 = ({ formData, updateField }) => (
   <View style={{ width: '100%' }}>
@@ -160,18 +237,13 @@ const Step4 = ({ formData, updateField }) => (
 
     <View style={styles.inputContainer}>
       <Text style={styles.inputLabel}>Select Bank</Text>
-      {/* Simulating Dropdown with Touchable View */}
-      <TouchableOpacity style={[styles.inputField, styles.dropdownField]}>
-        <Text
-          style={{
-            color: formData.bank ? '#000' : '#A0A0A0',
-            fontFamily: font.REGULAR,
-          }}
-        >
-          {formData.bank || 'Select'}
-        </Text>
-        <ArrowDownIcon size={20} color="#757575" />
-      </TouchableOpacity>
+      <TextInput
+        style={styles.inputField}
+        value={formData.bank}
+        onChangeText={text => updateField('bank', text)}
+        placeholder="Enter Bank Name"
+        placeholderTextColor="#A0A0A0"
+      />
     </View>
 
     <View style={styles.inputContainer}>
@@ -189,36 +261,154 @@ const Step4 = ({ formData, updateField }) => (
 
 const SignupScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const totalSteps = 4;
 
+  useEffect(() => {
+    const backAction = () => {
+      if (currentStep > 1) {
+        setCurrentStep(currentStep - 1);
+        return true;
+      }
+      return false; // Default behavior (go back)
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [currentStep]);
+
   const [formData, setFormData] = useState({
-    businessName: "TONY'S HOUSE",
-    ownerName: 'Warren',
-    phone: '+91 84602 98786',
-    email: 'demo1234@gmail.com',
-    businessAddress: '12/12/2002',
+    businessName: "",
+    ownerName: '',
+    phone: '',
+    email: '',
+    businessAddress: '',
     gstNo: '',
     beneficiaryName: '',
     accountNo: '',
     bank: '',
     ifscCode: '',
+    password: '',
+    confirmPassword: '',
+    panNumber: '',
+    panImage: '',
+    deviceToken: 'device_token_here',
   });
 
-  const handleNext = () => {
+  const validateStep = () => {
+    let isValid = true;
+    let error = '';
+
+    // Regex Patterns
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    const accountRegex = /^\d{9,18}$/;
+
+    if (currentStep === 1) {
+      if (!formData.businessName) error = 'Business Name is required';
+      else if (!formData.ownerName) error = 'Owner Name is required';
+    } else if (currentStep === 2) {
+      if (!formData.phone) error = 'Phone number is required';
+      else if (!phoneRegex.test(formData.phone)) error = 'Invalid Indian Phone Number';
+      else if (!formData.email) error = 'Email is required';
+      else if (!emailRegex.test(formData.email)) error = 'Invalid Email Address';
+      else if (!formData.businessAddress) error = 'Business Address is required';
+      else if (!formData.password) error = 'Password is required';
+      else if (!formData.confirmPassword) error = 'Confirm Password is required';
+      else if (formData.password !== formData.confirmPassword)
+        error = 'Passwords do not match';
+    } else if (currentStep === 3) {
+      if (!formData.panNumber) error = 'PAN Number is required';
+      else if (!panRegex.test(formData.panNumber)) error = 'Invalid PAN Number format';
+      else if (!formData.panImage) error = 'PAN Image is required';
+      else if (!formData.gstNo) error = 'GST Number is required';
+      else if (!gstRegex.test(formData.gstNo)) error = 'Invalid GST Number format';
+    } else if (currentStep === 4) {
+      if (!formData.beneficiaryName) error = 'Beneficiary Name is required';
+      else if (!formData.accountNo) error = 'Account Number is required';
+      else if (!accountRegex.test(formData.accountNo)) error = 'Invalid Account Number';
+      else if (!formData.bank) error = 'Bank Name is required';
+      else if (!formData.ifscCode) error = 'IFSC Code is required';
+      else if (!ifscRegex.test(formData.ifscCode)) error = 'Invalid IFSC Code format';
+    }
+
+    if (error) {
+      setErrorMessage(error);
+      isValid = false;
+    } else {
+      setErrorMessage('');
+    }
+
+    return isValid;
+  };
+
+  const handleNext = async () => {
+    if (!validateStep()) return;
+
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
+      setIsLoading(true);
       console.log('Submit Form', formData);
-      navigation.navigate('MainTabs');
+
+      const payload = {
+        name: formData.ownerName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
+        business_name: formData.businessName,
+        owner_name: formData.ownerName,
+        business_address: formData.businessAddress,
+        pan_number: formData.panNumber,
+        pan_image_base64:
+          formData.panImage ||
+          '',
+        gst_number: formData.gstNo,
+        beneficiary_name: formData.beneficiaryName,
+        account_number: formData.accountNo,
+        bank_name: formData.bank,
+        ifsc_code: formData.ifscCode,
+        deviceToken: formData.deviceToken,
+      };
+
+      console.log('Payload:', payload);
+
+      try {
+        const response = await apiService.post('provider/signup', payload);
+        console.log('Signup Response:', response.data.data);
+        setIsLoading(false);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs' }],
+          })
+        );
+      } catch (error) {
+        setIsLoading(false);
+        console.error('Signup Error:', error);
+        setErrorMessage(
+          error.response?.data?.message || 'Registration failed. Please try again.',
+        );
+      }
     }
   };
 
   const handleLogin = () => {
     console.log('Navigate to Login');
-    navigation.navigate('LoginScreen');
+    navigation.goBack();
   };
 
   const updateField = (key, value) => {
+    setErrorMessage('');
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
@@ -272,9 +462,28 @@ const SignupScreen = ({ navigation }) => {
           )}
 
           <View style={{ width: '100%', marginTop: 30 }}>
+            {errorMessage ? (
+              <Text
+                style={{
+                  color: 'red',
+                  textAlign: 'center',
+                  marginBottom: 10,
+                  fontFamily: font.REGULAR,
+                }}
+              >
+                {errorMessage}
+              </Text>
+            ) : null}
             <GradientButton
-              title={currentStep === totalSteps ? 'Submit' : 'Next'}
+              title={
+                isLoading
+                  ? 'Loading...'
+                  : currentStep === totalSteps
+                    ? 'Submit'
+                    : 'Next'
+              }
               onPress={handleNext}
+              isLoading={isLoading}
               colors={['#FF1744', '#FF8C00']}
             />
           </View>
