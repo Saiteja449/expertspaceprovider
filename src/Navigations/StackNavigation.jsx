@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SplashScreen from '../Screens/AuthScreens/SplashScreen';
 import LoginScreen from '../Screens/AuthScreens/LoginScreen';
 import SignupScreen from '../Screens/AuthScreens/SignupScreen';
+import ApprovalPendingScreen from '../Screens/AuthScreens/ApprovalPendingScreen';
 import BottomNavigation from './BottomNavigation';
 import ProductDetailScreen from '../Screens/MainScreens/ProductDetailScreen';
 import AddProductScreen from '../Screens/MainScreens/AddProductScreen';
@@ -29,6 +30,7 @@ const StackNavigation = () => {
           <Stack.Screen name="SplashScreen" component={SplashScreen} />
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
           <Stack.Screen name="SignupScreen" component={SignupScreen} />
+          <Stack.Screen name="ApprovalPendingScreen" component={ApprovalPendingScreen} />
           <Stack.Screen name="MainTabs" component={BottomNavigation} />
           <Stack.Screen
             name="ProductDetailScreen"

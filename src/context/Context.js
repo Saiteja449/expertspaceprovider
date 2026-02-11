@@ -18,6 +18,14 @@ export const Provider = ({ children }) => {
                 deviceToken: 'deviceToken',
             });
             console.log('Login Success:', response.data);
+
+            // Store token if available in response
+            if (response.data && response.data.token) {
+                await AsyncStorage.setItem('token', response.data.token);
+            } else if (response.data && response.data.data && response.data.data.token) {
+                await AsyncStorage.setItem('token', response.data.data.token);
+            }
+
             setUser(response.data);
             await AsyncStorage.setItem('userData', JSON.stringify(response.data));
             return response.data;
@@ -45,6 +53,32 @@ export const Provider = ({ children }) => {
         checkUser();
     }, []);
 
+    // Fetch provider profile
+    const fetchProviderProfile = async () => {
+        try {
+            const response = await apiService.get('provider/getProviderProfile');
+            console.log('Provider Profile:', response.data);
+            if (response.data && response.data.success) {
+                const userData = response.data.data;
+                setUser(userData);
+                await AsyncStorage.setItem('userData', JSON.stringify(userData));
+                return { success: true };
+            }
+            return { success: false, status: response.data?.status };
+        } catch (error) {
+            console.error('Fetch Provider Profile Error:', error);
+            // Check if error response contains status
+            if (error.response && error.response.data) {
+                return {
+                    success: false,
+                    status: error.response.data.status,
+                    message: error.response.data.message
+                };
+            }
+            return { success: false };
+        }
+    };
+
     // Example function to fetch user data using axios
     const fetchUser = async (userId) => {
         try {
@@ -69,6 +103,7 @@ export const Provider = ({ children }) => {
                 setLoading,
                 login,
                 fetchUser,
+                fetchProviderProfile,
             }}
         >
             {children}

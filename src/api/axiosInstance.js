@@ -1,4 +1,5 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const axiosInstance = axios.create({
     baseURL: 'https://app.expertspace.in/api/v1/', // Replace with your actual base URL
@@ -13,10 +14,10 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     async config => {
         // You can add authentication token here
-        // const token = await AsyncStorage.getItem('token');
-        // if (token) {
-        //   config.headers.Authorization = `Bearer ${token}`;
-        // }
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     error => {

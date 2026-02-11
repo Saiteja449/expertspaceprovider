@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { styles } from '../../Globalcss/Globalcss';
 import CustomHeader from '../../components/CustomHeader';
 import GradientButton from '../../components/GradientButton';
 import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
+import apiService from '../../api/apiService';
 
 // SVG Icons
 import UploadIcon from '../../../assets/images/upload.svg';
@@ -21,18 +22,20 @@ import PlusIcon from '../../../assets/images/plusIcon.svg';
 
 const AddProductScreen = ({ navigation }) => {
   const [step, setStep] = useState(1);
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
 
   // Form State
   const [formData, setFormData] = useState({
-    category: 'Select',
-    subCategory: 'Select',
-    brand: 'Select Brand',
+    category: '',
+    subCategory: '',
+    brand: '',
     sku: '',
     productName: '',
     description: '',
-    material: 'Select',
+    material: '',
     dimensions: { length: '', width: '', height: '' },
-    finishType: 'Select',
+    finishType: '',
     stock: '',
     weight: '80kg',
     status: 'In Stock',
@@ -40,15 +43,43 @@ const AddProductScreen = ({ navigation }) => {
     mrp: '',
   });
 
-  // Dynamic Color Variants state
   const [colorVariants, setColorVariants] = useState([
-    { id: 1, color: 'Select', images: [] },
+    { id: 1, color: '', images: [] },
   ]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await apiService.get('provider/getAllCategoriesForProvider');
+      if (response.data.success) {
+        setCategories(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchSubCategories = async (categoryId) => {
+    try {
+      const response = await apiService.get(`provider/getAllSubCategoriesByIdForProvider/${categoryId}`);
+      if (response.data.success) {
+        setSubCategories(response.data.data);
+      } else {
+        setSubCategories([]);
+      }
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      setSubCategories([]);
+    }
+  };
 
   const addColorVariant = () => {
     setColorVariants([
       ...colorVariants,
-      { id: Date.now(), color: 'Select', images: [] },
+      { id: Date.now(), color: '', images: [] },
     ]);
   };
 
@@ -73,13 +104,13 @@ const AddProductScreen = ({ navigation }) => {
     navigation.navigate('ProductAddedSuccessScreen');
   };
 
-  // Dummy Data
-  const categories = ['Select', 'Furniture', 'Electronics', 'Clothing'];
-  const subCategories = ['Select', 'Sofa', 'Table', 'Chair'];
-  const brands = ['Select Brand', 'Brand A', 'Brand B', 'Brand C'];
-  const materials = ['Select', 'Teak Wood', 'Rosewood', 'Metal', 'MDF'];
-  const colors = ['Select', 'Beige', 'Black', 'Brown', 'Grey', 'Red'];
-  const finishes = ['Select', 'Glossy', 'Matte', 'Natural'];
+  // Static Data
+  // const categories = ['Select', 'Furniture', 'Electronics', 'Clothing']; // Now coming from API
+  // const subCategories = ['Select', 'Sofa', 'Table', 'Chair']; // Now coming from API
+  const brands = ['Brand A', 'Brand B', 'Brand C'];
+  const materials = ['Teak Wood', 'Rosewood', 'Metal', 'MDF'];
+  const colors = ['Beige', 'Black', 'Brown', 'Grey', 'Red'];
+  const finishes = ['Glossy', 'Matte', 'Natural'];
   const statuses = ['In Stock', 'Out of Stock'];
 
   const renderStep1 = () => (
@@ -87,8 +118,13 @@ const AddProductScreen = ({ navigation }) => {
       <Label text="Select category" />
       <CustomPicker
         selectedValue={formData.category}
-        onValueChange={val => setFormData({ ...formData, category: val })}
+        onValueChange={(val) => {
+          setFormData({ ...formData, category: val, subCategory: '' });
+          if (val) fetchSubCategories(val);
+          else setSubCategories([]);
+        }}
         items={categories}
+        placeholder="Select Category"
       />
 
       <Label text="Select Sub category" />
@@ -96,6 +132,8 @@ const AddProductScreen = ({ navigation }) => {
         selectedValue={formData.subCategory}
         onValueChange={val => setFormData({ ...formData, subCategory: val })}
         items={subCategories}
+        placeholder="Select Sub Category"
+        enabled={!!formData.category}
       />
 
       <Label text="Brand" />
@@ -103,6 +141,7 @@ const AddProductScreen = ({ navigation }) => {
         selectedValue={formData.brand}
         onValueChange={val => setFormData({ ...formData, brand: val })}
         items={brands}
+        placeholder="Select Brand"
       />
 
       <Label text="SKU" />
@@ -160,6 +199,7 @@ const AddProductScreen = ({ navigation }) => {
         selectedValue={formData.material}
         onValueChange={val => setFormData({ ...formData, material: val })}
         items={materials}
+        placeholder="Select Material"
       />
 
       <Label text="Color Option" />
@@ -180,6 +220,7 @@ const AddProductScreen = ({ navigation }) => {
             selectedValue={variant.color}
             onValueChange={val => updateColorVariant(variant.id, 'color', val)}
             items={colors}
+            placeholder="Select Color"
           />
 
           <View style={{ marginTop: 12 }}>
@@ -238,6 +279,7 @@ const AddProductScreen = ({ navigation }) => {
         selectedValue={formData.finishType}
         onValueChange={val => setFormData({ ...formData, finishType: val })}
         items={finishes}
+        placeholder="Select Finish Type"
       />
 
       <Label text="Stock" />
@@ -264,6 +306,7 @@ const AddProductScreen = ({ navigation }) => {
         selectedValue={formData.status}
         onValueChange={val => setFormData({ ...formData, status: val })}
         items={statuses}
+        placeholder="Select Status"
       />
 
       <Label text="Selling Price" />
@@ -302,7 +345,7 @@ const AddProductScreen = ({ navigation }) => {
       <CustomHeader
         variant="internal"
         title="Add Product"
-        onRightPress={() => {}}
+        onRightPress={() => { }}
       />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -316,17 +359,32 @@ const AddProductScreen = ({ navigation }) => {
 // Sub-components
 const Label = ({ text }) => <Text style={styles.addProductLabel}>{text}</Text>;
 
-const CustomPicker = ({ selectedValue, onValueChange, items }) => {
-  const isPlaceholder = selectedValue.includes('Select');
+const CustomPicker = ({ selectedValue, onValueChange, items, placeholder = 'Select', enabled = true }) => {
+  let displayLabel = placeholder;
+  if (selectedValue && selectedValue !== '') {
+    const found = items.find(i => (typeof i === 'object' ? i.id === selectedValue : i === selectedValue));
+    if (found) {
+      displayLabel = typeof found === 'object' ? found.name : found;
+    } else {
+      // Fallback for string items if not in list or if simply a value
+      displayLabel = selectedValue;
+    }
+  }
+
+  // Handle case where initial values might include "Select" or "Select Brand" from old state usage
+  if (displayLabel.includes('Select') && displayLabel !== placeholder) {
+    displayLabel = placeholder;
+  }
 
   return (
-    <View style={styles.pickerContainer}>
+    <View style={[styles.pickerContainer, !enabled && { opacity: 0.6 }]}>
       <Text
+        numberOfLines={1}
         style={
-          isPlaceholder ? styles.pickerPlaceholderText : styles.pickerValueText
+          !selectedValue || selectedValue === '' || displayLabel === placeholder ? styles.pickerPlaceholderText : styles.pickerValueText
         }
       >
-        {selectedValue}
+        {displayLabel}
       </Text>
 
       <View style={styles.pickerIconContainer}>
@@ -337,11 +395,15 @@ const CustomPicker = ({ selectedValue, onValueChange, items }) => {
         selectedValue={selectedValue}
         onValueChange={onValueChange}
         style={styles.pickerStyle}
-        dropdownIconColor="transparent" // Hide default icon where possible
+        dropdownIconColor="transparent"
+        enabled={enabled}
       >
-        {items.map((item, index) => (
-          <Picker.Item key={index} label={item} value={item} />
-        ))}
+        <Picker.Item label={placeholder} value="" color="#9E9E9E" />
+        {items.map((item, index) => {
+          const label = typeof item === 'object' ? item.name : item;
+          const value = typeof item === 'object' ? item.id : item;
+          return <Picker.Item key={index} label={label} value={value} />;
+        })}
       </Picker>
     </View>
   );

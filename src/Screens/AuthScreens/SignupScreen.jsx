@@ -20,6 +20,8 @@ import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
 import { font } from '../../utils/fontFamilies';
 import apiService from '../../api/apiService';
 import { CommonActions } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useContextState } from '../../context/Context';
 
 const Step1 = ({ formData, updateField }) => (
   <View style={{ width: '100%' }}>
@@ -260,6 +262,7 @@ const Step4 = ({ formData, updateField }) => (
 );
 
 const SignupScreen = ({ navigation }) => {
+  const { fetchProviderProfile } = useContextState();
   const [currentStep, setCurrentStep] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -385,13 +388,36 @@ const SignupScreen = ({ navigation }) => {
       try {
         const response = await apiService.post('provider/signup', payload);
         console.log('Signup Response:', response.data.data);
+
+        // Store token and provider_id
+        const { token, provider_id } = response.data.data;
+        if (token) {
+          await AsyncStorage.setItem('token', token);
+        }
+        if (provider_id) {
+          await AsyncStorage.setItem('provider_id', String(provider_id));
+        }
+
+        // Fetch profile
+        const result = await fetchProviderProfile();
+
         setIsLoading(false);
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: 'MainTabs' }],
-          })
-        );
+
+        if (result && result.status === 'pending') {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'ApprovalPendingScreen' }],
+            })
+          );
+        } else {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'MainTabs' }],
+            })
+          );
+        }
       } catch (error) {
         setIsLoading(false);
         console.error('Signup Error:', error);

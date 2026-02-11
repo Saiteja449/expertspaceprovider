@@ -4,26 +4,38 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from '../../Globalcss/Globalcss';
 import SplashLogo from '../../../assets/images/LogoProvider.svg';
 
+import { useContextState } from '../../context/Context';
+
 const SplashScreen = ({ navigation }) => {
+  const { fetchProviderProfile } = useContextState();
+
   useEffect(() => {
     const checkLogin = async () => {
       try {
-        const userData = await AsyncStorage.getItem('userData');
-        // We can add a small delay here if needed to show the splash logo for at least some time
-        setTimeout(() => {
-          if (userData) {
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
+          const result = await fetchProviderProfile();
+          if (result && result.success) {
             navigation.replace('MainTabs');
+          } else if (result && result.status === 'pending') {
+            navigation.replace('ApprovalPendingScreen');
           } else {
             navigation.replace('LoginScreen');
           }
-        }, 2000);
+        } else {
+          navigation.replace('LoginScreen');
+        }
       } catch (error) {
         console.error('Splash Check Error:', error);
         navigation.replace('LoginScreen');
       }
     };
 
-    checkLogin();
+    const timer = setTimeout(() => {
+      checkLogin();
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, [navigation]);
 
   return (
