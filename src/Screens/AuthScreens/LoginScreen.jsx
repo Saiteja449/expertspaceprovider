@@ -8,20 +8,39 @@ import {
   Platform,
   ScrollView,
   StatusBar,
-  Alert,
 } from 'react-native';
 import SplashLogo from '../../../assets/images/SplashLogo.svg';
 import { styles } from '../../Globalcss/Globalcss';
 import GradientButton from '../../components/GradientButton';
+import BottomModal from '../../components/BottomModal';
 import LinearGradient from 'react-native-linear-gradient';
-import { useContextState } from '../../context/Context';
+import { useUser } from '../../context/UserContext';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [errors, setErrors] = useState({});
-  const { login, loading } = useContextState();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: '',
+    message: '',
+    type: 'error',
+    actionButtonText: 'OK',
+    onActionPress: null,
+  });
+  const { login, loading } = useUser();
+
+  const showModal = (title, message, type = 'error', onActionPress = null) => {
+    setModalData({
+      title,
+      message,
+      type,
+      actionButtonText: 'OK',
+      onActionPress,
+    });
+    setModalVisible(true);
+  };
 
   const handleLogin = async () => {
     setErrors({});
@@ -35,12 +54,17 @@ const LoginScreen = ({ navigation }) => {
     }
 
     try {
-      await login(email, password);
-      // user is set in context, and persisted. 
-      // navigate to next screen
-      navigation.navigate('MainTabs');
+      const result = await login(email, password);
+      if (result.success === true) {
+        showModal('Success', 'Login successful!', 'success', () => {
+          setModalVisible(false);
+          navigation.navigate('MainTabs');
+        });
+      } else {
+        showModal('Login Failed', result.message || 'An error occurred', 'error');
+      }
     } catch (error) {
-      Alert.alert('Login Failed', error.response?.data?.message || error.message);
+      showModal('Login Error', error.message || 'Something went wrong', 'error');
     }
   };
 
@@ -182,6 +206,15 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <BottomModal
+        visible={modalVisible}
+        title={modalData.title}
+        message={modalData.message}
+        type={modalData.type}
+        onClose={() => setModalVisible(false)}
+        actionButtonText={modalData.actionButtonText}
+        onActionPress={modalData.onActionPress}
+      />
     </View>
   );
 };

@@ -2,17 +2,17 @@ import React from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import StackNavigation from './src/Navigations/StackNavigation';
-import { Provider } from './src/context/Context';
+import RootContext from './src/context/RootContext';
 
-function App() {
+const App = () => {
   return (
     <SafeAreaProvider>
-      <Provider>
+      <RootContext>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
         <StackNavigation />
-      </Provider>
+      </RootContext>
     </SafeAreaProvider>
   );
-}
+};
 
 export default App;

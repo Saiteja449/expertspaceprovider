@@ -1,42 +1,29 @@
 import React, { useEffect } from 'react';
 import { View, Text, StatusBar } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from '../../Globalcss/Globalcss';
 import SplashLogo from '../../../assets/images/LogoProvider.svg';
 
-import { useContextState } from '../../context/Context';
+import { useUser } from '../../context/UserContext';
 
 const SplashScreen = ({ navigation }) => {
-  const { fetchProviderProfile } = useContextState();
+  const { checkLogin } = useUser();
 
   useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        if (token) {
-          const result = await fetchProviderProfile();
-          if (result && result.success) {
-            navigation.replace('MainTabs');
-          } else if (result && result.status === 'pending') {
-            navigation.replace('ApprovalPendingScreen');
-          } else {
-            navigation.replace('LoginScreen');
-          }
-        } else {
-          navigation.replace('LoginScreen');
-        }
-      } catch (error) {
-        console.error('Splash Check Error:', error);
+    const handleNavigation = async () => {
+      const result = await checkLogin();
+      if (result && result.navigate) {
+        navigation.replace(result.navigate);
+      } else {
         navigation.replace('LoginScreen');
       }
     };
 
     const timer = setTimeout(() => {
-      checkLogin();
+      handleNavigation();
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, checkLogin]);
 
   return (
     <View style={styles.container}>

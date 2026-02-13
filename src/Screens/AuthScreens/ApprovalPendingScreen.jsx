@@ -3,16 +3,15 @@ import { View, Text, StatusBar, BackHandler, StyleSheet } from 'react-native';
 import SplashLogo from '../../../assets/images/LogoProvider.svg';
 import { font } from '../../utils/fontFamilies';
 import GradientButton from '../../components/GradientButton';
-import { useContextState } from '../../context/Context';
+import { useUser } from '../../context/UserContext';
 import { CommonActions } from '@react-navigation/native';
 
 const ApprovalPendingScreen = ({ navigation }) => {
-    const { fetchProviderProfile } = useContextState();
+    const { fetchProviderProfile, user } = useUser();
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const backAction = () => {
-            // Prevent going back to login or signup if they are in this state
             BackHandler.exitApp();
             return true;
         };
@@ -31,7 +30,6 @@ const ApprovalPendingScreen = ({ navigation }) => {
         setLoading(false);
 
         if (result && result.success) {
-            // If approved, proceed to MainTabs
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
@@ -39,10 +37,7 @@ const ApprovalPendingScreen = ({ navigation }) => {
                 })
             );
         } else {
-            // Stay on screen or show toast, handled by API error logs usually
-            // But if status is still pending, we just say "Still pending"
-            // The fetchProviderProfile will return { success: false, status: 'pending' } (planned update)
-            // For now, if result is not success, we assume status didn't change enough to proceed
+            
         }
     };
 

@@ -16,12 +16,11 @@ import SplashLogo from '../../../assets/images/SplashLogo.svg';
 import Upload from '../../../assets/images/upload.svg';
 import { styles } from '../../Globalcss/Globalcss';
 import GradientButton from '../../components/GradientButton';
+import BottomModal from '../../components/BottomModal';
 import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
 import { font } from '../../utils/fontFamilies';
-import apiService from '../../api/apiService';
 import { CommonActions } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useContextState } from '../../context/Context';
+import { useUser } from '../../context/UserContext';
 
 const Step1 = ({ formData, updateField }) => (
   <View style={{ width: '100%' }}>
@@ -262,11 +261,29 @@ const Step4 = ({ formData, updateField }) => (
 );
 
 const SignupScreen = ({ navigation }) => {
-  const { fetchProviderProfile } = useContextState();
+  const { signup, loading } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalData, setModalData] = useState({
+    title: '',
+    message: '',
+    type: 'error',
+    actionButtonText: 'OK',
+    onActionPress: null,
+  });
   const totalSteps = 4;
+
+  const showModal = (title, message, type = 'error', onActionPress = null) => {
+    setModalData({
+      title,
+      message,
+      type,
+      actionButtonText: 'OK',
+      onActionPress,
+    });
+    setModalVisible(true);
+  };
 
   useEffect(() => {
     const backAction = () => {
@@ -359,7 +376,6 @@ const SignupScreen = ({ navigation }) => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      setIsLoading(true);
       console.log('Submit Form', formData);
 
       const payload = {
@@ -372,9 +388,7 @@ const SignupScreen = ({ navigation }) => {
         owner_name: formData.ownerName,
         business_address: formData.businessAddress,
         pan_number: formData.panNumber,
-        pan_image_base64:
-          formData.panImage ||
-          '',
+        pan_image_base64: formData.panImage || '',
         gst_number: formData.gstNo,
         beneficiary_name: formData.beneficiaryName,
         account_number: formData.accountNo,
@@ -385,45 +399,25 @@ const SignupScreen = ({ navigation }) => {
 
       console.log('Payload:', payload);
 
-      try {
-        const response = await apiService.post('provider/signup', payload);
-        console.log('Signup Response:', response.data.data);
+      const result = await signup(payload);
 
-        // Store token and provider_id
-        const { token, provider_id } = response.data.data;
-        if (token) {
-          await AsyncStorage.setItem('token', token);
-        }
-        if (provider_id) {
-          await AsyncStorage.setItem('provider_id', String(provider_id));
-        }
-
-        // Fetch profile
-        const result = await fetchProviderProfile();
-
-        setIsLoading(false);
-
-        if (result && result.status === 'pending') {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'ApprovalPendingScreen' }],
-            })
-          );
-        } else {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'MainTabs' }],
-            })
-          );
-        }
-      } catch (error) {
-        setIsLoading(false);
-        console.error('Signup Error:', error);
-        setErrorMessage(
-          error.response?.data?.message || 'Registration failed. Please try again.',
+      if (result.success) {
+        showModal(
+          'Success',
+          'Registration successful! Redirecting...',
+          'success',
+          () => {
+            setModalVisible(false);
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: result.navigate }],
+              })
+            );
+          }
         );
+      } else {
+        showModal('Signup Failed', result.message || 'Registration failed', 'error');
       }
     }
   };
@@ -502,14 +496,14 @@ const SignupScreen = ({ navigation }) => {
             ) : null}
             <GradientButton
               title={
-                isLoading
+                loading
                   ? 'Loading...'
                   : currentStep === totalSteps
                     ? 'Submit'
                     : 'Next'
               }
               onPress={handleNext}
-              isLoading={isLoading}
+              isLoading={loading}
               colors={['#FF1744', '#FF8C00']}
             />
           </View>
@@ -522,6 +516,15 @@ const SignupScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <BottomModal
+        visible={modalVisible}
+        title={modalData.title}
+        message={modalData.message}
+        type={modalData.type}
+        onClose={() => setModalVisible(false)}
+        actionButtonText={modalData.actionButtonText}
+        onActionPress={modalData.onActionPress}
+      />
     </View>
   );
 };
