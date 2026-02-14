@@ -12,6 +12,7 @@ import { styles } from '../Globalcss/Globalcss';
 const CustomHeader = ({
   variant = 'dashboard',
   title = '',
+  onLeftPress,
   onRightPress,
   rightIcon,
   onChatPress = () => console.log('Chat Pressed'),
@@ -26,7 +27,7 @@ const CustomHeader = ({
       <View style={styles.ordersHeader}>
         <TouchableOpacity
           style={styles.headerIconButton}
-          onPress={() => navigation.goBack()}
+          onPress={onLeftPress ? onLeftPress : () => navigation.goBack()}
         >
           <GoBackIcon width={24} height={24} />
         </TouchableOpacity>

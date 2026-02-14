@@ -7,192 +7,505 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { styles } from '../../Globalcss/Globalcss';
 import CustomHeader from '../../components/CustomHeader';
 import GradientButton from '../../components/GradientButton';
 import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
-import apiService from '../../api/apiService';
+import { useProduct } from '../../context/ProductContext';
 
 // SVG Icons
 import UploadIcon from '../../../assets/images/upload.svg';
 import PlusIcon from '../../../assets/images/plusIcon.svg';
 
 const AddProductScreen = ({ navigation }) => {
+  const {
+    categories,
+    subCategories,
+    fetchCategories,
+    fetchSubCategories,
+    createProduct,
+    createLoading,
+  } = useProduct();
   const [step, setStep] = useState(1);
-  const [categories, setCategories] = useState([]);
-  const [subCategories, setSubCategories] = useState([]);
+  const [errors, setErrors] = useState({});
 
   // Form State
   const [formData, setFormData] = useState({
-    category: '',
-    subCategory: '',
+    category_id: '',
+    sub_category_id: '',
     brand: '',
     sku: '',
-    productName: '',
+    name: '',
     description: '',
     material: '',
     dimensions: { length: '', width: '', height: '' },
-    finishType: '',
+    // finishType: '',
     stock: '',
-    weight: '80kg',
-    status: 'In Stock',
-    sellingPrice: '',
+    weight: '',
+    stock_status: 'in_stock',
+    price: '',
     mrp: '',
+    main_image: null,
+    main_extra_images: [],
   });
 
   const [colorVariants, setColorVariants] = useState([
-    { id: 1, color: '', images: [] },
+    {
+      id: Date.now(),
+      color_name: '',
+      stock: '',
+      price_adjustment: '',
+      is_default: true,
+      images: [],
+    },
   ]);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await apiService.get('provider/getAllCategoriesForProvider');
-      if (response.data.success) {
-        setCategories(response.data.data);
+    const backAction = () => {
+      if (step === 2) {
+        setStep(1);
+        return true; // Prevent default behavior (exit)
       }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
+      return false; // Default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [step]);
+
+  const handleSelectPrimaryImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+    });
+
+    if (result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      const imageFile = {
+        uri: asset.uri,
+        type: asset.type,
+        name: asset.fileName,
+        image_type: 'primary',
+      };
+      setFormData({ ...formData, main_image: imageFile });
     }
   };
 
-  const fetchSubCategories = async (categoryId) => {
-    try {
-      const response = await apiService.get(`provider/getAllSubCategoriesByIdForProvider/${categoryId}`);
-      if (response.data.success) {
-        setSubCategories(response.data.data);
-      } else {
-        setSubCategories([]);
-      }
-    } catch (error) {
-      console.error('Error fetching subcategories:', error);
-      setSubCategories([]);
+  const handleRemovePrimaryImage = () => {
+    setFormData({ ...formData, main_image: null });
+  };
+
+  const handleSelectGalleryImages = async () => {
+    const currentImages = formData.main_extra_images || [];
+    const limit = 3 - currentImages.length;
+
+    if (limit <= 0) return;
+
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: limit,
+    });
+
+    if (result.assets && result.assets.length > 0) {
+      const newImages = result.assets.map(asset => ({
+        uri: asset.uri,
+        type: asset.type,
+        name: asset.fileName,
+        image_type: 'gallery',
+      }));
+      setFormData({
+        ...formData,
+        main_extra_images: [...currentImages, ...newImages],
+      });
     }
+  };
+
+  const handleRemoveGalleryImage = index => {
+    const updated = [...(formData.main_extra_images || [])];
+    updated.splice(index, 1);
+    setFormData({ ...formData, main_extra_images: updated });
   };
 
   const addColorVariant = () => {
     setColorVariants([
       ...colorVariants,
-      { id: Date.now(), color: '', images: [] },
+      {
+        id: Date.now(),
+        color_name: '',
+        stock: '',
+        price_adjustment: '',
+        is_default: false,
+        images: [],
+      },
     ]);
   };
 
   const removeColorVariant = id => {
     if (colorVariants.length > 1) {
-      setColorVariants(colorVariants.filter(v => v.id !== id));
+      const filtered = colorVariants.filter(v => v.id !== id);
+      if (!filtered.some(v => v.is_default)) {
+        filtered[0].is_default = true;
+      }
+      setColorVariants(filtered);
     }
   };
 
   const updateColorVariant = (id, field, value) => {
     setColorVariants(
-      colorVariants.map(v => (v.id === id ? { ...v, [field]: value } : v)),
+      colorVariants.map(v => {
+        if (v.id === id) {
+          if (field === 'is_default' && value === true) {
+            // Set all others to false if this one is set to true
+            return { ...v, [field]: value };
+          }
+          return { ...v, [field]: value };
+        }
+        if (field === 'is_default' && value === true) {
+          return { ...v, is_default: false };
+        }
+        return v;
+      }),
+    );
+  };
+
+  const handleSelectVariantImages = async variantId => {
+    const variant = colorVariants.find(v => v.id === variantId);
+    const currentImages = variant.images || [];
+    const limit = 4 - currentImages.length;
+
+    if (limit <= 0) return;
+
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: limit,
+    });
+
+    if (result.assets && result.assets.length > 0) {
+      const newImages = result.assets.map(asset => ({
+        uri: asset.uri,
+        type: asset.type,
+        name: asset.fileName,
+        image_type: 'color_variant',
+      }));
+      setColorVariants(
+        colorVariants.map(v =>
+          v.id === variantId
+            ? { ...v, images: [...currentImages, ...newImages] }
+            : v,
+        ),
+      );
+    }
+  };
+
+  const handleRemoveVariantImage = (variantId, imageIndex) => {
+    setColorVariants(
+      colorVariants.map(v => {
+        if (v.id === variantId) {
+          const updatedImages = [...v.images];
+          updatedImages.splice(imageIndex, 1);
+          return { ...v, images: updatedImages };
+        }
+        return v;
+      }),
     );
   };
 
   const handleNext = () => {
+    const newErrors = {};
+    if (!formData.category_id) newErrors.category_id = true;
+    if (!formData.sub_category_id) newErrors.sub_category_id = true;
+    if (!formData.sku) newErrors.sku = true;
+    if (!formData.main_image) newErrors.main_image = true;
+    if (formData.category_id == 1 && (!formData.main_extra_images || formData.main_extra_images.length === 0)) {
+      newErrors.main_extra_images = true;
+    }
+    if (!formData.name) newErrors.name = true;
+    if (!formData.description) newErrors.description = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      // Optional: scroll to top or vibrate
+      return;
+    }
+    setErrors({});
     setStep(2);
   };
 
-  const handlePublish = () => {
-    console.log('Publishing Product:', { ...formData, colorVariants });
-    navigation.navigate('ProductAddedSuccessScreen');
+
+
+  const handlePublish = async () => {
+    const isCategoryOne = formData.category_id == 1;
+
+    // Base payload
+    const finalPayload = {
+      ...formData,
+      price: parseFloat(formData.price) || 0,
+      mrp: parseFloat(formData.mrp) || 0,
+      stock: parseInt(formData.stock) || 0,
+      weight: parseFloat(formData.weight) || 0,
+      has_color_variants: !isCategoryOne,
+      main_extra_images: isCategoryOne ? formData.main_extra_images : [],
+    };
+
+    if (!isCategoryOne) {
+      finalPayload.color_variants = colorVariants.map(v => ({
+        color_name: v.color_name,
+        color_code: '#000000',
+        stock: parseInt(v.stock) || 0,
+        price_adjustment: parseFloat(v.price_adjustment) || 0,
+        is_default: v.is_default,
+      }));
+
+      colorVariants.forEach((v, index) => {
+        if (v.images && v.images.length > 0) {
+          finalPayload[`color_variant_${index}`] = v.images;
+        }
+      });
+    }
+
+    try {
+      console.log('Publishing Product:', finalPayload);
+      const res = await createProduct(finalPayload);
+      if (res.success === true) {
+        navigation.navigate('ProductAddedSuccessScreen');
+      } else {
+        alert(res.message || 'Failed to create product');
+      }
+    } catch (err) {
+      alert('Something went wrong. Please try again.');
+    }
   };
 
-  // Static Data
-  // const categories = ['Select', 'Furniture', 'Electronics', 'Clothing']; // Now coming from API
-  // const subCategories = ['Select', 'Sofa', 'Table', 'Chair']; // Now coming from API
-  const brands = ['Brand A', 'Brand B', 'Brand C'];
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.screenContainer}
+    >
+      <CustomHeader
+        variant="internal"
+        title="Add Product"
+        onLeftPress={handleBack}
+        onRightPress={() => { }}
+      />
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {step === 1 ? (
+          <Step1
+            formData={formData}
+            setFormData={setFormData}
+            categories={categories}
+            subCategories={subCategories}
+            fetchSubCategories={fetchSubCategories}
+            handleNext={handleNext}
+            handleSelectPrimaryImage={handleSelectPrimaryImage}
+            handleRemovePrimaryImage={handleRemovePrimaryImage}
+            handleSelectGalleryImages={handleSelectGalleryImages}
+            handleRemoveGalleryImage={handleRemoveGalleryImage}
+            handlePublish={handlePublish}
+            errors={errors}
+          />
+        ) : (
+          <Step2
+            formData={formData}
+            setFormData={setFormData}
+            colorVariants={colorVariants}
+            addColorVariant={addColorVariant}
+            removeColorVariant={removeColorVariant}
+            updateColorVariant={updateColorVariant}
+            handleSelectVariantImages={handleSelectVariantImages}
+            handleRemoveVariantImage={handleRemoveVariantImage}
+            handlePublish={handlePublish}
+            apiLoading={createLoading}
+          />
+        )}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {createLoading && (
+        <View style={{
+          ...styles.screenContainer,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(255,255,255,0.7)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 999,
+        }}>
+          <ActivityIndicator size="large" color="#F83336" />
+          <Text style={{ marginTop: 10, color: '#F83336', fontFamily: styles.addColorText.fontFamily }}>
+            Creating Product...
+          </Text>
+        </View>
+      )}
+    </KeyboardAvoidingView>
+  );
+};
+
+// Step Components
+const Step1 = ({
+  formData,
+  setFormData,
+  categories,
+  subCategories,
+  fetchSubCategories,
+  handleNext,
+  handleSelectPrimaryImage,
+  handleRemovePrimaryImage,
+  handleSelectGalleryImages,
+  handleRemoveGalleryImage,
+  handlePublish, // Added handlePublish
+  errors = {},
+}) => (
+  <View style={{ padding: 16 }}>
+    <Label text="Select category" />
+    <CustomPicker
+      selectedValue={formData.category_id}
+      onValueChange={(val) => {
+        setFormData({ ...formData, category_id: val, sub_category_id: '' });
+        if (val) fetchSubCategories(val);
+      }}
+      items={categories}
+      placeholder="Select Category"
+      hasError={errors.category_id}
+    />
+
+    <Label text="Select Sub category" />
+    <CustomPicker
+      selectedValue={formData.sub_category_id}
+      onValueChange={val => setFormData({ ...formData, sub_category_id: val })}
+      items={subCategories}
+      placeholder="Select Sub Category"
+      enabled={!!formData.category_id}
+      hasError={errors.sub_category_id}
+    />
+
+    <Label text="SKU" />
+    <TextInput
+      style={[styles.addProductInput, errors.sku && { borderColor: '#F83336' }]}
+      placeholder="Enter SKU"
+      placeholderTextColor="#9E9E9E"
+      value={formData.sku}
+      onChangeText={val => setFormData({ ...formData, sku: val })}
+    />
+
+    <Label text="Upload Primary Image" />
+    {formData.main_image ? (
+      <ImagePreview
+        file={formData.main_image}
+        onRemove={handleRemovePrimaryImage}
+      />
+    ) : (
+      <UploadBox onPress={handleSelectPrimaryImage} hasError={errors.main_image} />
+    )}
+
+    {formData.category_id == 1 && (
+      <>
+        <Label text="Upload Other Images (Max 3)" />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          {formData.main_extra_images &&
+            formData.main_extra_images.map((img, index) => (
+              <View key={index} style={styles.imagePreviewContainer}>
+                <Image source={{ uri: img.uri }} style={styles.imagePreview} />
+                <TouchableOpacity
+                  style={styles.removeImageBtn}
+                  onPress={() => handleRemoveGalleryImage(index)}
+                >
+                  <Text style={styles.removeImageText}>X</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+        </View>
+
+        {(!formData.main_extra_images ||
+          formData.main_extra_images.length < 3) && (
+            <UploadBox
+              onPress={handleSelectGalleryImages}
+              hint="Upload up to 3 gallery images"
+              hasError={errors.main_extra_images}
+            />
+          )}
+      </>
+    )}
+
+    <Label text="Product Name" />
+    <TextInput
+      style={[styles.addProductInput, errors.name && { borderColor: '#F83336' }]}
+      placeholder="Enter name"
+      placeholderTextColor="#9E9E9E"
+      value={formData.name}
+      onChangeText={val => setFormData({ ...formData, name: val })}
+    />
+
+    <Label text="Product Description" />
+    <View style={[styles.addProductDescriptionContainer, errors.description && { borderColor: '#F83336' }]}>
+      <TextInput
+        style={styles.addProductDescriptionInput}
+        placeholder="Description enter here..."
+        placeholderTextColor="#9E9E9E"
+        multiline
+        maxLength={1000}
+        value={formData.description}
+        onChangeText={val => setFormData({ ...formData, description: val })}
+      />
+      <Text style={styles.addProductCharCount}>
+        {formData.description.length}/1000
+      </Text>
+    </View>
+
+    <GradientButton
+      title={'Next'}
+      onPress={handleNext}
+      style={{ marginTop: 24, marginBottom: 40 }}
+    />
+  </View>
+);
+
+const Step2 = ({
+  formData,
+  setFormData,
+  colorVariants,
+  addColorVariant,
+  removeColorVariant,
+  updateColorVariant,
+  handleSelectVariantImages,
+  handleRemoveVariantImage,
+  handlePublish,
+  apiLoading
+}) => {
   const materials = ['Teak Wood', 'Rosewood', 'Metal', 'MDF'];
   const colors = ['Beige', 'Black', 'Brown', 'Grey', 'Red'];
-  const finishes = ['Glossy', 'Matte', 'Natural'];
-  const statuses = ['In Stock', 'Out of Stock'];
+  // const finishes = ['Glossy', 'Matte', 'Natural'];
+  const statuses = [
+    { id: 'in_stock', name: 'In Stock' },
+    { id: 'out_of_stock', name: 'Out of Stock' },
+    { id: 'low_stock', name: 'Low Stock' },
+  ];
 
-  const renderStep1 = () => (
-    <View style={{ padding: 16 }}>
-      <Label text="Select category" />
-      <CustomPicker
-        selectedValue={formData.category}
-        onValueChange={(val) => {
-          setFormData({ ...formData, category: val, subCategory: '' });
-          if (val) fetchSubCategories(val);
-          else setSubCategories([]);
-        }}
-        items={categories}
-        placeholder="Select Category"
-      />
-
-      <Label text="Select Sub category" />
-      <CustomPicker
-        selectedValue={formData.subCategory}
-        onValueChange={val => setFormData({ ...formData, subCategory: val })}
-        items={subCategories}
-        placeholder="Select Sub Category"
-        enabled={!!formData.category}
-      />
-
-      <Label text="Brand" />
-      <CustomPicker
-        selectedValue={formData.brand}
-        onValueChange={val => setFormData({ ...formData, brand: val })}
-        items={brands}
-        placeholder="Select Brand"
-      />
-
-      <Label text="SKU" />
-      <TextInput
-        style={styles.addProductInput}
-        placeholder="Enter SKU"
-        placeholderTextColor="#9E9E9E"
-        value={formData.sku}
-        onChangeText={val => setFormData({ ...formData, sku: val })}
-      />
-
-      <Label text="Upload Primary Image" />
-      <UploadBox />
-
-      <Label text="Upload Other Images" />
-      <UploadBox />
-
-      <Label text="Product Name" />
-      <TextInput
-        style={styles.addProductInput}
-        placeholder="Enter name"
-        placeholderTextColor="#9E9E9E"
-        value={formData.productName}
-        onChangeText={val => setFormData({ ...formData, productName: val })}
-      />
-
-      <Label text="Product Description" />
-      <View style={styles.addProductDescriptionContainer}>
-        <TextInput
-          style={styles.addProductDescriptionInput}
-          placeholder="Description enter here..."
-          placeholderTextColor="#9E9E9E"
-          multiline
-          maxLength={1000}
-          value={formData.description}
-          onChangeText={val => setFormData({ ...formData, description: val })}
-        />
-        <Text style={styles.addProductCharCount}>
-          {formData.description.length}/1000
-        </Text>
-      </View>
-
-      <GradientButton
-        title="Next"
-        onPress={handleNext}
-        style={{ marginTop: 24, marginBottom: 40 }}
-      />
-    </View>
-  );
-
-  const renderStep2 = () => (
+  return (
     <View style={{ padding: 16 }}>
       <Label text="Material" />
       <CustomPicker
@@ -202,109 +515,185 @@ const AddProductScreen = ({ navigation }) => {
         placeholder="Select Material"
       />
 
-      <Label text="Color Option" />
-      {colorVariants.map((variant, index) => (
-        <View key={variant.id} style={styles.colorOptionCard}>
-          <View style={styles.colorOptionHeader}>
-            <Text style={styles.colorOptionTitle}>
-              Color Variant {index + 1}
-            </Text>
-            {colorVariants.length > 1 && (
-              <TouchableOpacity onPress={() => removeColorVariant(variant.id)}>
-                <Text style={styles.removeColorText}>Remove</Text>
+      {formData.category_id != 1 && (
+        <>
+          <Label text="Color Option" />
+          {colorVariants.map((variant, index) => (
+            <View key={variant.id} style={styles.colorOptionCard}>
+              <View style={styles.colorOptionHeader}>
+                <Text style={styles.colorOptionTitle}>
+                  Color Variant {index + 1}
+                </Text>
+                {colorVariants.length > 1 && (
+                  <TouchableOpacity
+                    onPress={() => removeColorVariant(variant.id)}
+                  >
+                    <Text style={styles.removeColorText}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Label text="Color Name" />
+              <CustomPicker
+                selectedValue={variant.color_name}
+                onValueChange={val =>
+                  updateColorVariant(variant.id, 'color_name', val)
+                }
+                items={colors}
+                placeholder="Select Color"
+              />
+
+              <View style={{ flexDirection: 'row', gap: 12, }}>
+                <View style={{ flex: 1 }}>
+                  <Label text="Stock" />
+                  <TextInput
+                    style={styles.addProductInput}
+                    placeholder="10"
+                    placeholderTextColor="#9E9E9E"
+                    keyboardType="numeric"
+                    value={variant.stock.toString()}
+                    onChangeText={val => updateColorVariant(variant.id, 'stock', val)}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Label text="Price Adjust" />
+                  <TextInput
+                    style={styles.addProductInput}
+                    placeholder="0"
+                    placeholderTextColor="#9E9E9E"
+                    keyboardType="numeric"
+                    value={variant.price_adjustment.toString()}
+                    onChangeText={val => updateColorVariant(variant.id, 'price_adjustment', val)}
+                  />
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.rememberContainer, { marginTop: 16 }]}
+                onPress={() => updateColorVariant(variant.id, 'is_default', true)}
+              >
+                <View style={[styles.checkbox, variant.is_default && styles.checkboxChecked]}>
+                  {variant.is_default && <Text style={{ color: '#FFF' }}>✓</Text>}
+                </View>
+                <Text style={styles.rememberText}>Set as Default</Text>
               </TouchableOpacity>
-            )}
+
+              <Label text="Variant Images (Max 4)" />
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                {variant.images.map((img, imgIdx) => (
+                  <View key={imgIdx} style={styles.imagePreviewContainer}>
+                    <Image source={{ uri: img.uri }} style={styles.imagePreview} />
+                    <TouchableOpacity
+                      style={styles.removeImageBtn}
+                      onPress={() => handleRemoveVariantImage(variant.id, imgIdx)}
+                    >
+                      <Text style={styles.removeImageText}>X</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+
+              {variant.images.length < 4 && (
+                <View style={{}}>
+                  <UploadBox
+                    onPress={() => handleSelectVariantImages(variant.id)}
+                    hint="Upload up to 4 variant images"
+                  />
+                </View>
+              )}
+            </View>
+          ))}
+
+          <TouchableOpacity
+            style={styles.addColorBtn}
+            onPress={addColorVariant}
+          >
+            <PlusIcon width={16} height={16} />
+            <Text style={styles.addColorText}>Add color variant</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {formData.category_id != 1 && (
+        <>
+          <Label text="Dimensions" />
+          <View style={styles.addProductDimensionRow}>
+            <TextInput
+              style={styles.addProductDimensionInput}
+              placeholder="Length"
+              placeholderTextColor="#9E9E9E"
+              value={formData.dimensions.length}
+              onChangeText={val =>
+                setFormData({
+                  ...formData,
+                  dimensions: { ...formData.dimensions, length: val },
+                })
+              }
+            />
+            <TextInput
+              style={styles.addProductDimensionInput}
+              placeholder="Width"
+              placeholderTextColor="#9E9E9E"
+              value={formData.dimensions.width}
+              onChangeText={val =>
+                setFormData({
+                  ...formData,
+                  dimensions: { ...formData.dimensions, width: val },
+                })
+              }
+            />
+            <TextInput
+              style={styles.addProductDimensionInput}
+              placeholder="Height"
+              placeholderTextColor="#9E9E9E"
+              value={formData.dimensions.height}
+              onChangeText={val =>
+                setFormData({
+                  ...formData,
+                  dimensions: { ...formData.dimensions, height: val },
+                })
+              }
+            />
           </View>
+        </>
+      )}
 
-          <CustomPicker
-            selectedValue={variant.color}
-            onValueChange={val => updateColorVariant(variant.id, 'color', val)}
-            items={colors}
-            placeholder="Select Color"
-          />
-
-          <View style={{ marginTop: 12 }}>
-            <UploadBox hint="Upload images for this color" />
-          </View>
-        </View>
-      ))}
-
-      <TouchableOpacity style={styles.addColorBtn} onPress={addColorVariant}>
-        <PlusIcon width={16} height={16} />
-        <Text style={styles.addColorText}>Add color variant</Text>
-      </TouchableOpacity>
-
-      <Label text="Dimensions" />
-      <View style={styles.addProductDimensionRow}>
-        <TextInput
-          style={styles.addProductDimensionInput}
-          placeholder="Length"
-          placeholderTextColor="#9E9E9E"
-          value={formData.dimensions.length}
-          onChangeText={val =>
-            setFormData({
-              ...formData,
-              dimensions: { ...formData.dimensions, length: val },
-            })
-          }
-        />
-        <TextInput
-          style={styles.addProductDimensionInput}
-          placeholder="Width"
-          placeholderTextColor="#9E9E9E"
-          value={formData.dimensions.width}
-          onChangeText={val =>
-            setFormData({
-              ...formData,
-              dimensions: { ...formData.dimensions, width: val },
-            })
-          }
-        />
-        <TextInput
-          style={styles.addProductDimensionInput}
-          placeholder="Height"
-          placeholderTextColor="#9E9E9E"
-          value={formData.dimensions.height}
-          onChangeText={val =>
-            setFormData({
-              ...formData,
-              dimensions: { ...formData.dimensions, height: val },
-            })
-          }
-        />
-      </View>
-
-      <Label text="Finish Type" />
+      {/* <Label text="Finish Type" />
       <CustomPicker
         selectedValue={formData.finishType}
         onValueChange={val => setFormData({ ...formData, finishType: val })}
         items={finishes}
         placeholder="Select Finish Type"
-      />
+      /> */}
 
-      <Label text="Stock" />
-      <TextInput
-        style={styles.addProductInput}
-        placeholder="Enter Stock"
-        placeholderTextColor="#9E9E9E"
-        keyboardType="numeric"
-        value={formData.stock}
-        onChangeText={val => setFormData({ ...formData, stock: val })}
-      />
+      {formData.category_id != 1 && (
+        <>
+          <Label text="Stock" />
+          <TextInput
+            style={styles.addProductInput}
+            placeholder="Enter Stock"
+            placeholderTextColor="#9E9E9E"
+            keyboardType="numeric"
+            value={formData.stock}
+            onChangeText={val => setFormData({ ...formData, stock: val })}
+          />
+        </>
+      )}
 
       <Label text="Item Weight" />
       <TextInput
         style={styles.addProductInput}
-        placeholder="80kg"
+        placeholder="Enter Weight (kg)"
         placeholderTextColor="#9E9E9E"
+        keyboardType="numeric"
         value={formData.weight}
         onChangeText={val => setFormData({ ...formData, weight: val })}
       />
 
       <Label text="Status" />
       <CustomPicker
-        selectedValue={formData.status}
-        onValueChange={val => setFormData({ ...formData, status: val })}
+        selectedValue={formData.stock_status}
+        onValueChange={val => setFormData({ ...formData, stock_status: val })}
         items={statuses}
         placeholder="Select Status"
       />
@@ -315,8 +704,8 @@ const AddProductScreen = ({ navigation }) => {
         placeholder="Enter Selling Price"
         placeholderTextColor="#9E9E9E"
         keyboardType="numeric"
-        value={formData.sellingPrice}
-        onChangeText={val => setFormData({ ...formData, sellingPrice: val })}
+        value={formData.price}
+        onChangeText={val => setFormData({ ...formData, price: val })}
       />
 
       <Label text="Actual MRP" />
@@ -330,39 +719,31 @@ const AddProductScreen = ({ navigation }) => {
       />
 
       <GradientButton
-        title="Publish Product"
+        title={apiLoading ? "Publishing..." : "Publish Product"}
         onPress={handlePublish}
-        style={{ marginTop: 24, marginBottom: 40 }}
+        disabled={apiLoading}
+        style={{ marginTop: 24, marginBottom: 40, opacity: apiLoading ? 0.7 : 1 }}
       />
     </View>
-  );
-
-  return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.screenContainer}
-    >
-      <CustomHeader
-        variant="internal"
-        title="Add Product"
-        onRightPress={() => { }}
-      />
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {step === 1 ? renderStep1() : renderStep2()}
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </KeyboardAvoidingView>
   );
 };
 
 // Sub-components
 const Label = ({ text }) => <Text style={styles.addProductLabel}>{text}</Text>;
 
-const CustomPicker = ({ selectedValue, onValueChange, items, placeholder = 'Select', enabled = true }) => {
+const CustomPicker = ({
+  selectedValue,
+  onValueChange,
+  items,
+  placeholder = 'Select',
+  enabled = true,
+  hasError = false,
+}) => {
   let displayLabel = placeholder;
   if (selectedValue && selectedValue !== '') {
-    const found = items.find(i => (typeof i === 'object' ? i.id === selectedValue : i === selectedValue));
+    const found = items.find(i =>
+      typeof i === 'object' ? i.id === selectedValue : i === selectedValue,
+    );
     if (found) {
       displayLabel = typeof found === 'object' ? found.name : found;
     } else {
@@ -377,11 +758,17 @@ const CustomPicker = ({ selectedValue, onValueChange, items, placeholder = 'Sele
   }
 
   return (
-    <View style={[styles.pickerContainer, !enabled && { opacity: 0.6 }]}>
+    <View style={[
+      styles.pickerContainer,
+      !enabled && { opacity: 0.6 },
+      hasError && { borderColor: '#F83336' }
+    ]}>
       <Text
         numberOfLines={1}
         style={
-          !selectedValue || selectedValue === '' || displayLabel === placeholder ? styles.pickerPlaceholderText : styles.pickerValueText
+          !selectedValue || selectedValue === '' || displayLabel === placeholder
+            ? styles.pickerPlaceholderText
+            : styles.pickerValueText
         }
       >
         {displayLabel}
@@ -409,14 +796,30 @@ const CustomPicker = ({ selectedValue, onValueChange, items, placeholder = 'Sele
   );
 };
 
-const UploadBox = ({ hint = 'Minimum file size 50mb, jpeg,png,mp4' }) => (
+const ImagePreview = ({ file, onRemove }) => (
+  <View style={styles.imagePreviewContainer}>
+    <Image source={{ uri: file.uri }} style={styles.imagePreview} />
+    <TouchableOpacity style={styles.removeImageBtn} onPress={onRemove}>
+      <Text style={styles.removeImageText}>X</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const UploadBox = ({ hint = 'Minimum file size 50mb, jpeg,png,mp4', onPress, selectedFile, hasError = false }) => (
   <View style={{ marginBottom: 4 }}>
-    <TouchableOpacity style={styles.addProductUploadContainer}>
+    <TouchableOpacity
+      style={[styles.addProductUploadContainer, hasError && { borderColor: '#F83336' }]}
+      onPress={onPress}
+    >
       <View style={styles.addProductUploadRow}>
         <UploadIcon width={41} height={41} />
         <View>
-          <Text style={styles.uploadLabelText}>Upload file here</Text>
-          <Text style={styles.uploadSelectText}>Select file</Text>
+          <Text style={styles.uploadLabelText}>
+            {selectedFile ? selectedFile.name : 'Upload file here'}
+          </Text>
+          <Text style={styles.uploadSelectText}>
+            {selectedFile ? 'Change file' : 'Select file'}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
