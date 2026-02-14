@@ -668,7 +668,7 @@ export const styles = StyleSheet.create({
   removeImageText: {
     color: '#F83336',
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 14,
   },
   addProductDescriptionContainer: {
     backgroundColor: '#FFFFFF',

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../utils/constant';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://app.expertspace.in/api/v1/',
+  baseURL: API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

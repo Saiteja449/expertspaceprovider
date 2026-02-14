@@ -1,44 +1,174 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { styles } from '../../Globalcss/Globalcss';
 import CustomHeader from '../../components/CustomHeader';
 import ShareIcon from '../../../assets/images/shareIcon.svg';
 import SofaIcon from '../../../assets/images/sofasvg.svg';
+import { useProduct } from '../../context/ProductContext';
+import { BASE_URL } from '../../utils/constant';
 
 const ProductDetailScreen = ({ route, navigation }) => {
-  // Use product data from route params if available, otherwise use defaults
-  const product = route?.params?.product || {
-    title:
-      'Rosewood 2-Seater Modern Classic Settee Sofa Diwan Chaise Lounge Couch with Pillow for Home and Living Room, Office, Bedroom (Beige Kulfi, Large)',
-    productId: '20957689',
-    category: 'Furniture',
-    price: '₹ 22,000',
-    stock: 10,
-    mrp: '₹ 24,000',
-    sellingPrice: '₹ 22,000',
-    earnPrice: '₹ 21,500',
-    discount: '10%',
-    charge: '₹ 500',
-    dimensions: '70D x 150W x 80H Centimeters',
-    type: 'Sofa Chaise',
-    colour: 'Multi colour',
-    style: 'Modern,Classic',
-    weight: '80kg',
-    gst: '0%',
+  const { productId } = route.params;
+  const { getProductById, deleteProductImage, addProductImages } = useProduct();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionText, setActionText] = useState('');
+
+  const fetchDetail = async () => {
+    const data = await getProductById(productId);
+    setProduct(data);
+    setLoading(false);
   };
 
-  const points = [
-    'Primary Material- Frame in Teak Wood| Foam 40 density With 1 Year Waranty | Good quality Velvet.',
-    'Material- Wood, Product Dimension- 150L x 80W x 70H Centimeter, Package Content- Wooden Sofa',
-    'No assembly required the product is delivered in a preassembled state. (only legs to be fix by the customer)',
-    'The color of the product may vary slightly from the picture displayed on your screen this is due to lighting, pixel quality and color settings... Accessories shown in the image are only for representation and are not part of the product.',
-    'We want all of our customers to feel 100% satisfied. If you have any questions, please email us or Cantact in time, we guarantee to reply within 24 hours and give you a satisfactory reply.',
-    'Versatile & Multi-Purpose: Functions as a diwan, chaise lounge, or accent sofa, offering a stylish and comfortable seating solution for guests and relaxation.',
-    'We want all of our customers to feel 100% satisfied. If you have any questions, please email us or Cantact in time, we guarantee to reply within 24 hours and give you a satisfactory reply.',
-  ];
+  useEffect(() => {
+    fetchDetail();
+  }, [productId]);
+
+  const handleDeleteImage = async imageId => {
+    Alert.alert('Delete Image', 'Are you sure you want to delete this image?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          setActionText('Deleting Image...');
+          setActionLoading(true);
+          try {
+            const res = await deleteProductImage(imageId);
+            if (res.success) {
+              await fetchDetail(); // Refresh data
+              Alert.alert('Success', 'Image deleted successfully');
+            } else {
+              Alert.alert('Error', res.message || 'Failed to delete image');
+            }
+          } catch (err) {
+            Alert.alert('Error', 'Something went wrong while deleting');
+          } finally {
+            setActionLoading(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleAddImages = async (type, variantId = null) => {
+    const currentImagesCount =
+      type === 'gallery'
+        ? product.images?.filter(img => img.image_type === 'gallery').length ||
+        0
+        : product.colorVariants?.find(v => v.id === variantId)?.images
+          ?.length || 0;
+
+    const limit =
+      type === 'gallery' ? 3 - currentImagesCount : 4 - currentImagesCount;
+    if (limit <= 0) return;
+
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+    });
+
+    if (result.assets && result.assets.length > 0) {
+      setActionText('Uploading Images...');
+      setActionLoading(true);
+      try {
+        const payload = {
+          product_id: product.id,
+          image_type: type,
+          color_variant_id: variantId,
+          images: result.assets.map(asset => ({
+            uri: asset.uri,
+            type: asset.type,
+            name: asset.fileName,
+          })),
+        };
+        const res = await addProductImages(payload);
+        if (res.success) {
+          await fetchDetail();
+          Alert.alert('Success', 'Images added successfully');
+        } else {
+          Alert.alert('Error', res.message || 'Failed to upload images');
+        }
+      } catch (err) {
+        Alert.alert('Error', 'Something went wrong while uploading');
+      } finally {
+        setActionLoading(false);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.screenContainer,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#F83336" />
+      </View>
+    );
+  }
+
+  if (!product) {
+    return (
+      <View
+        style={[
+          styles.screenContainer,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <Text>Product not found</Text>
+      </View>
+    );
+  }
+
+  const primaryImage = product.images?.find(
+    img => img.image_type === 'primary',
+  )?.image_url;
+  const imageUrl = primaryImage ? `${BASE_URL}${primaryImage}` : null;
+  const parsedDimensions =
+    typeof product.dimensions === 'string'
+      ? JSON.parse(product.dimensions)
+      : product.dimensions;
+
+  const galleryImages =
+    product.images?.filter(img => img.image_type === 'gallery') || [];
 
   return (
     <View style={styles.screenContainer}>
+      {actionLoading && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <ActivityIndicator size="large" color="#FFF" />
+          <Text
+            style={{ color: '#FFF', marginTop: 10, fontFamily: 'Inter-Medium' }}
+          >
+            {actionText}
+          </Text>
+        </View>
+      )}
       <CustomHeader
         variant="internal"
         title="Product Detail"
@@ -51,24 +181,35 @@ const ProductDetailScreen = ({ route, navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.productDetailCard}>
-          <Text style={styles.productDetailFullTitle}>{product.title}</Text>
+          <Text style={styles.productDetailFullTitle}>{product.name}</Text>
 
           <View style={styles.detailSummaryRow}>
             <View style={styles.detailProductImg}>
-              <SofaIcon width={75} height={75} />
+              {imageUrl ? (
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={{ width: 75, height: 75, borderRadius: 12 }}
+                />
+              ) : (
+                <SofaIcon width={75} height={75} />
+              )}
             </View>
             <View style={styles.detailSummaryInfo}>
               <View style={styles.detailDataRow}>
                 <Text style={styles.detailDataLabel}>Price</Text>
-                <Text style={styles.detailPrice}>{product.price}</Text>
+                <Text style={styles.detailPrice}>
+                  ₹ {parseFloat(product.price).toLocaleString()}
+                </Text>
               </View>
               <View style={styles.detailDataRow}>
                 <Text style={styles.detailDataLabel}>Product ID</Text>
-                <Text style={styles.detailDataValue}>{product.productId}</Text>
+                <Text style={styles.detailDataValue}>#{product.id}</Text>
               </View>
               <View style={styles.detailDataRow}>
                 <Text style={styles.detailDataLabel}>Category</Text>
-                <Text style={styles.detailDataValue}>{product.category}</Text>
+                <Text style={styles.detailDataValue}>
+                  {product.category?.name}
+                </Text>
               </View>
             </View>
           </View>
@@ -76,44 +217,203 @@ const ProductDetailScreen = ({ route, navigation }) => {
           <View style={styles.detailStockRow}>
             <Text style={styles.detailStockLabel}>Stock</Text>
             <View style={styles.detailStockBox}>
-              <Text style={styles.detailStockValue}>{product.stock}</Text>
+              <Text style={styles.detailStockValue}>
+                {product.total_stock || product.stock || 0}
+              </Text>
             </View>
           </View>
 
           <View style={styles.attributesList}>
-            <DetailItem label="Actual MRP" value={product.mrp} isPrice />
             <DetailItem
-              label="Selling Price"
-              value={product.sellingPrice}
+              label="Actual MRP"
+              value={`₹ ${parseFloat(product.mrp).toLocaleString()}`}
               isPrice
             />
-            <DetailItem label="Earn Price" value={product.earnPrice} isPrice />
+            <DetailItem
+              label="Selling Price"
+              value={`₹ ${parseFloat(product.price).toLocaleString()}`}
+              isPrice
+            />
             <DetailItem
               label="Discount %"
-              value={product.discount}
+              value={`${product.discount_percent}%`}
               isDiscount
             />
             <DetailItem
-              label="Expert space charge"
-              value={product.charge}
-              isPrice
+              label="Dimensions"
+              value={
+                parsedDimensions
+                  ? `${parsedDimensions.length}L x ${parsedDimensions.width}W x ${parsedDimensions.height}H`
+                  : 'N/A'
+              }
             />
-            <DetailItem label="Dimensions" value={product.dimensions} />
-            <DetailItem label="Type" value={product.type} />
-            <DetailItem label="Colour" value={product.colour} />
-            <DetailItem label="Style" value={product.style} />
-            <DetailItem label="Item Weight" value={product.weight} />
-            <DetailItem label="Product GST" value={product.gst} />
+            <DetailItem
+              label="Sub Category"
+              value={product.subCategory?.name}
+            />
+            <DetailItem label="Material" value={product.material} />
+            <DetailItem label="Item Weight" value={`${product.weight} kg`} />
+            <DetailItem label="SKU" value={product.sku} />
+            <DetailItem
+              label="Status"
+              value={product.approval_status?.toUpperCase()}
+            />
           </View>
+
+          {product.colorVariants?.length > 0 && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={styles.descriptionTitle}>
+                Color Variants (Max 4 images per variant)
+              </Text>
+              {product.colorVariants.map((variant, index) => (
+                <View
+                  key={index}
+                  style={{
+                    marginBottom: 16,
+                    backgroundColor: '#F8F9FE',
+                    padding: 10,
+                    borderRadius: 12,
+                  }}
+                >
+                  <View style={[styles.detailDataRow, { marginBottom: 8 }]}>
+                    <View
+                      style={{ flexDirection: 'row', alignItems: 'center' }}
+                    >
+                      <View
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 7,
+                          backgroundColor: variant.color_code,
+                          marginRight: 8,
+                          borderWidth: 1,
+                          borderColor: '#DDD',
+                        }}
+                      />
+                      <Text
+                        style={[
+                          styles.detailDataLabel,
+                          { fontFamily: 'Inter-SemiBold', color: '#333' },
+                        ]}
+                      >
+                        {variant.color_name}
+                      </Text>
+                    </View>
+                    <Text style={styles.detailDataValue}>
+                      Stock: {variant.stock}
+                    </Text>
+                  </View>
+
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ marginTop: 8 }}
+                  >
+                    {variant.images?.map((img, imgIdx) => (
+                      <View key={imgIdx} style={styles.imagePreviewContainer}>
+                        <Image
+                          source={{ uri: `${BASE_URL}${img.image_url}` }}
+                          style={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 8,
+                            marginRight: 8,
+                            backgroundColor: '#EEE',
+                          }}
+                        />
+                        <TouchableOpacity
+                          style={[
+                            styles.removeImageBtn,
+                            { width: 20, height: 20, top: -5, right: 3 },
+                          ]}
+                          onPress={() => handleDeleteImage(img.id)}
+                        >
+                          <Text
+                            style={[styles.removeImageText, { fontSize: 10 }]}
+                          >
+                            X
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                    {(!variant.images || variant.images.length < 4) && (
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleAddImages('color_variant', variant.id)
+                        }
+                        style={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 8,
+                          marginRight: 8,
+                          backgroundColor: '#FFF',
+                          borderStyle: 'dashed',
+                          borderWidth: 1,
+                          borderColor: '#DDD',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          marginTop: 8,
+                          marginBottom: 4,
+                        }}
+                      >
+                        <Text style={{ fontSize: 20, color: '#DDD' }}>+</Text>
+                      </TouchableOpacity>
+                    )}
+                  </ScrollView>
+                </View>
+              ))}
+            </View>
+          )}
 
           <View style={styles.descriptionContainer}>
             <Text style={styles.descriptionTitle}>Description</Text>
-            {points.map((point, index) => (
-              <View key={index} style={styles.descriptionPoint}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.descriptionText}>{point}</Text>
-              </View>
-            ))}
+            <Text style={styles.descriptionText}>{product.description}</Text>
+          </View>
+
+          <View style={{ marginTop: 20 }}>
+            <Text style={styles.descriptionTitle}>
+              Product Gallery (Max 3 images)
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+              {galleryImages.map((img, index) => (
+                <View key={index} style={styles.imagePreviewContainer}>
+                  <Image
+                    source={{ uri: `${BASE_URL}${img.image_url}` }}
+                    style={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 8,
+                    }}
+                  />
+                  <TouchableOpacity
+                    style={styles.removeImageBtn}
+                    onPress={() => handleDeleteImage(img.id)}
+                  >
+                    <Text style={styles.removeImageText}>X</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {galleryImages.length < 3 && (
+                <TouchableOpacity
+                  onPress={() => handleAddImages('gallery')}
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 8,
+                    backgroundColor: '#F8F9FE',
+                    borderStyle: 'dashed',
+                    borderWidth: 1,
+                    borderColor: '#DDD',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 8,
+                    marginBottom: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 24, color: '#DDD' }}>+</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
           </View>
         </View>
       </ScrollView>

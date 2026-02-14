@@ -10,6 +10,7 @@ export const useProduct = () => {
 export const ProductProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -54,6 +55,42 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiService.get('provider/getProducts');
+      if (response.data.success === true) {
+        setProducts(response.data.data);
+      } else {
+        setProducts([]);
+      }
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProductById = async productId => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiService.get(`provider/getProductById/${productId}`);
+      if (response.data.success === true) {
+        return response.data.data;
+      }
+      return null;
+    } catch (err) {
+      console.error('Error fetching product by ID:', err);
+      setError(err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const createProduct = async payload => {
     setCreateLoading(true);
     setError(null);
@@ -79,7 +116,6 @@ export const ProductProvider = ({ children }) => {
       // Dimensions -> send as dimensions_json for backend parsing logic
       if (payload.dimensions) {
         formData.append('dimensions_json', JSON.stringify(payload.dimensions));
-        // Also send as dimensions just in case, but dimensions_json takes precedence in backend
         formData.append('dimensions', JSON.stringify(payload.dimensions));
       }
 
@@ -109,7 +145,6 @@ export const ProductProvider = ({ children }) => {
       }
 
       // Color Variant Images
-      // In backend, it looks for color_variant_0, color_variant_1, etc.
       Object.keys(payload).forEach(key => {
         if (key.startsWith('color_variant_')) {
           const images = payload[key];
@@ -140,6 +175,63 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  const deleteProductImage = async imageId => {
+    setLoading(true);
+    setError(null);
+    console.log('Deleting product image:', imageId);
+    try {
+      const response = await apiService.delete(`provider/deleteProductImageById`, {
+        image_id: imageId,
+      });
+      return response.data;
+    } catch (err) {
+      console.error('Error deleting product image:', err);
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addProductImages = async (payload) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append('image_type', payload.image_type);
+
+      if (payload.product_id) {
+        formData.append('product_id', payload.product_id);
+      }
+      if (payload.color_variant_id) {
+        formData.append('color_variant_id', payload.color_variant_id);
+      }
+
+      if (payload.images && payload.images.length > 0) {
+        payload.images.forEach((img, index) => {
+          formData.append('images', {
+            uri: img.uri,
+            type: img.type || 'image/jpeg',
+            name: img.name || `image_${index}.jpg`,
+          });
+        });
+      }
+
+      const response = await apiService.post('provider/addProductImages', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (err) {
+      console.error('Error adding product images:', err);
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     categories,
     subCategories,
@@ -149,6 +241,11 @@ export const ProductProvider = ({ children }) => {
     fetchSubCategories,
     createProduct,
     createLoading,
+    products,
+    fetchProducts,
+    getProductById,
+    deleteProductImage,
+    addProductImages,
   };
 
   return (
