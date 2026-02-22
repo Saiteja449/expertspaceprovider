@@ -12,7 +12,7 @@ import {
 import SplashLogo from '../../../assets/images/SplashLogo.svg';
 import { styles } from '../../Globalcss/Globalcss';
 import GradientButton from '../../components/GradientButton';
-import BottomModal from '../../components/BottomModal';
+import StatusModal from '../../components/StatusModal';
 import LinearGradient from 'react-native-linear-gradient';
 import { useUser } from '../../context/UserContext';
 
@@ -21,26 +21,12 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [errors, setErrors] = useState({});
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalData, setModalData] = useState({
-    title: '',
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    status: 'processing',
     message: '',
-    type: 'error',
-    actionButtonText: 'OK',
-    onActionPress: null,
   });
-  const { login, loading } = useUser();
-
-  const showModal = (title, message, type = 'error', onActionPress = null) => {
-    setModalData({
-      title,
-      message,
-      type,
-      actionButtonText: 'OK',
-      onActionPress,
-    });
-    setModalVisible(true);
-  };
+  const { login, loading: contextLoading } = useUser();
 
   const handleLogin = async () => {
     setErrors({});
@@ -53,18 +39,32 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    setModalConfig({
+      visible: true,
+      status: 'processing',
+      message: 'Authenticating...',
+    });
     try {
       const result = await login(email, password);
       if (result.success === true) {
-        showModal('Success', 'Login successful!', 'success', () => {
-          setModalVisible(false);
-          navigation.navigate('MainTabs');
+        setModalConfig({
+          visible: true,
+          status: 'success',
+          message: 'Login successful! Welcome back.',
         });
       } else {
-        showModal('Login Failed', result.message || 'An error occurred', 'error');
+        setModalConfig({
+          visible: true,
+          status: 'error',
+          message: result.message || 'Invalid credentials or connection error',
+        });
       }
     } catch (error) {
-      showModal('Login Error', error.message || 'Something went wrong', 'error');
+      setModalConfig({
+        visible: true,
+        status: 'error',
+        message: error.message || 'Something went wrong during login.',
+      });
     }
   };
 
@@ -191,7 +191,7 @@ const LoginScreen = ({ navigation }) => {
           <GradientButton
             title="Login"
             onPress={handleLogin}
-            isLoading={loading}
+            isLoading={modalConfig.status === 'processing' && modalConfig.visible}
             colors={['#FF1744', '#FF8C00']}
           />
 
@@ -206,14 +206,18 @@ const LoginScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <BottomModal
-        visible={modalVisible}
-        title={modalData.title}
-        message={modalData.message}
-        type={modalData.type}
-        onClose={() => setModalVisible(false)}
-        actionButtonText={modalData.actionButtonText}
-        onActionPress={modalData.onActionPress}
+      <StatusModal
+        visible={modalConfig.visible}
+        status={modalConfig.status}
+        message={modalConfig.message}
+        onClose={() => {
+          if (modalConfig.status === 'success') {
+            setModalConfig({ ...modalConfig, visible: false });
+            navigation.navigate('MainTabs');
+          } else {
+            setModalConfig({ ...modalConfig, visible: false });
+          }
+        }}
       />
     </View>
   );

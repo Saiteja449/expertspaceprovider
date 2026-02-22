@@ -10,6 +10,7 @@ export const useProduct = () => {
 export const ProductProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [childSubCategories, setChildSubCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
@@ -36,7 +37,8 @@ export const ProductProvider = ({ children }) => {
   const fetchSubCategories = async categoryId => {
     setLoading(true);
     setError(null);
-    setSubCategories([]); // Clear previous subcategories
+    setSubCategories([]);
+    setChildSubCategories([]);
     try {
       const response = await apiService.get(
         `provider/getAllSubCategoriesByIdForProvider/${categoryId}`,
@@ -49,6 +51,28 @@ export const ProductProvider = ({ children }) => {
     } catch (err) {
       console.error('Error fetching subcategories:', err);
       setSubCategories([]);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchChildSubCategories = async (categoryId, subCategoryId) => {
+    setLoading(true);
+    setError(null);
+    setChildSubCategories([]);
+    try {
+      const response = await apiService.get(
+        `provider/getAllChildSubCategoriesForProvider/${categoryId}/${subCategoryId}`,
+      );
+      if (response.data.success) {
+        setChildSubCategories(response.data.data);
+      } else {
+        setChildSubCategories([]);
+      }
+    } catch (err) {
+      console.error('Error fetching child subcategories:', err);
+      setChildSubCategories([]);
       setError(err);
     } finally {
       setLoading(false);
@@ -193,6 +217,21 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  const updateProduct = async (productId, payload) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiService.put(`provider/updateProduct/${productId}`, payload);
+      return response.data;
+    } catch (err) {
+      console.error('Error updating product:', err);
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addProductImages = async (payload) => {
     setLoading(true);
     setError(null);
@@ -235,10 +274,12 @@ export const ProductProvider = ({ children }) => {
   const value = {
     categories,
     subCategories,
+    childSubCategories,
     loading,
     error,
     fetchCategories,
     fetchSubCategories,
+    fetchChildSubCategories,
     createProduct,
     createLoading,
     products,
@@ -246,6 +287,7 @@ export const ProductProvider = ({ children }) => {
     getProductById,
     deleteProductImage,
     addProductImages,
+    updateProduct,
   };
 
   return (

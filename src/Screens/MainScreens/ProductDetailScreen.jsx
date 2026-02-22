@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -7,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Switch,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { styles } from '../../Globalcss/Globalcss';
@@ -18,7 +20,7 @@ import { BASE_URL } from '../../utils/constant';
 
 const ProductDetailScreen = ({ route, navigation }) => {
   const { productId } = route.params;
-  const { getProductById, deleteProductImage, addProductImages } = useProduct();
+  const { getProductById, deleteProductImage, addProductImages, updateProduct } = useProduct();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -30,9 +32,28 @@ const ProductDetailScreen = ({ route, navigation }) => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchDetail();
-  }, [productId]);
+  const toggleStatus = async (value) => {
+    setActionText(value ? 'Activating...' : 'Deactivating...');
+    setActionLoading(true);
+    try {
+      const res = await updateProduct(productId, { is_active: value });
+      if (res.success) {
+        setProduct({ ...product, is_active: value });
+      } else {
+        Alert.alert('Error', res.message || 'Failed to update status');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Something went wrong');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDetail();
+    }, [productId])
+  );
 
   const handleDeleteImage = async imageId => {
     Alert.alert('Delete Image', 'Are you sure you want to delete this image?', [
@@ -163,7 +184,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
         >
           <ActivityIndicator size="large" color="#FFF" />
           <Text
-            style={{ color: '#FFF', marginTop: 10, fontFamily: 'Inter-Medium' }}
+            style={{ color: '#FFF', marginTop: 10, fontFamily: styles.statsValue.fontFamily }}
           >
             {actionText}
           </Text>
@@ -180,6 +201,50 @@ const ProductDetailScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.productDetailScroll}
         showsVerticalScrollIndicator={false}
       >
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          backgroundColor: '#FFF',
+          marginBottom: 8,
+          borderRadius: 12,
+          elevation: 2,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{
+              fontFamily: styles.customHeaderWelcomeText.fontFamily,
+              fontSize: 16,
+              color: product.is_active ? '#4CAF50' : '#757575',
+              marginRight: 10
+            }}>
+              {product.is_active ? 'Active' : 'Inactive'}
+            </Text>
+            <Switch
+              value={!!product.is_active}
+              onValueChange={toggleStatus}
+              trackColor={{ false: '#D1D1D1', true: '#F83336' }}
+              thumbColor={'#FFF'}
+            />
+          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('EditProductScreen', { productId: product.id })}
+            style={{
+              backgroundColor: '#F83336',
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: '#FFF', fontFamily: styles.statsValue.fontFamily, fontSize: 14 }}>Edit Details</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.productDetailCard}>
           <Text style={styles.productDetailFullTitle}>{product.name}</Text>
 
@@ -226,17 +291,17 @@ const ProductDetailScreen = ({ route, navigation }) => {
           <View style={styles.attributesList}>
             <DetailItem
               label="Actual MRP"
-              value={`₹ ${parseFloat(product.mrp).toLocaleString()}`}
+              value={`₹ ${parseFloat(product.mrp || 0).toLocaleString()}`}
               isPrice
             />
             <DetailItem
               label="Selling Price"
-              value={`₹ ${parseFloat(product.price).toLocaleString()}`}
+              value={`₹ ${parseFloat(product.price || 0).toLocaleString()}`}
               isPrice
             />
             <DetailItem
               label="Discount %"
-              value={`${product.discount_percent}%`}
+              value={`${product.discount_percent || 0}%`}
               isDiscount
             />
             <DetailItem
@@ -248,8 +313,16 @@ const ProductDetailScreen = ({ route, navigation }) => {
               }
             />
             <DetailItem
+              label="Category"
+              value={product.category?.name}
+            />
+            <DetailItem
               label="Sub Category"
               value={product.subCategory?.name}
+            />
+            <DetailItem
+              label="Child Sub Category"
+              value={product.childSubCategory?.name}
             />
             <DetailItem label="Material" value={product.material} />
             <DetailItem label="Item Weight" value={`${product.weight} kg`} />
@@ -293,14 +366,14 @@ const ProductDetailScreen = ({ route, navigation }) => {
                       <Text
                         style={[
                           styles.detailDataLabel,
-                          { fontFamily: 'Inter-SemiBold', color: '#333' },
+                          { fontFamily: styles.statsValue.fontFamily, color: '#333' },
                         ]}
                       >
-                        {variant.color_name}
+                        {variant.color_name} {variant.is_default && '(Default)'}
                       </Text>
                     </View>
                     <Text style={styles.detailDataValue}>
-                      Stock: {variant.stock}
+                      Stock: {variant.stock} | Adjust: ₹{variant.price_adjustment}
                     </Text>
                   </View>
 

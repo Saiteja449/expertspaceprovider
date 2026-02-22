@@ -28,8 +28,10 @@ const AddProductScreen = ({ navigation }) => {
   const {
     categories,
     subCategories,
+    childSubCategories,
     fetchCategories,
     fetchSubCategories,
+    fetchChildSubCategories,
     createProduct,
     createLoading,
   } = useProduct();
@@ -40,6 +42,7 @@ const AddProductScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
     category_id: '',
     sub_category_id: '',
+    child_sub_category_id: '',
     brand: '',
     sku: '',
     name: '',
@@ -316,7 +319,9 @@ const AddProductScreen = ({ navigation }) => {
             setFormData={setFormData}
             categories={categories}
             subCategories={subCategories}
+            childSubCategories={childSubCategories}
             fetchSubCategories={fetchSubCategories}
+            fetchChildSubCategories={fetchChildSubCategories}
             handleNext={handleNext}
             handleSelectPrimaryImage={handleSelectPrimaryImage}
             handleRemovePrimaryImage={handleRemovePrimaryImage}
@@ -371,7 +376,9 @@ const Step1 = ({
   setFormData,
   categories,
   subCategories,
+  childSubCategories,
   fetchSubCategories,
+  fetchChildSubCategories,
   handleNext,
   handleSelectPrimaryImage,
   handleRemovePrimaryImage,
@@ -385,7 +392,7 @@ const Step1 = ({
     <CustomPicker
       selectedValue={formData.category_id}
       onValueChange={(val) => {
-        setFormData({ ...formData, category_id: val, sub_category_id: '' });
+        setFormData({ ...formData, category_id: val, sub_category_id: '', child_sub_category_id: '' });
         if (val) fetchSubCategories(val);
       }}
       items={categories}
@@ -396,11 +403,23 @@ const Step1 = ({
     <Label text="Select Sub category" />
     <CustomPicker
       selectedValue={formData.sub_category_id}
-      onValueChange={val => setFormData({ ...formData, sub_category_id: val })}
+      onValueChange={val => {
+        setFormData({ ...formData, sub_category_id: val, child_sub_category_id: '' });
+        if (val && formData.category_id) fetchChildSubCategories(formData.category_id, val);
+      }}
       items={subCategories}
       placeholder="Select Sub Category"
       enabled={!!formData.category_id}
       hasError={errors.sub_category_id}
+    />
+
+    <Label text="Select Child Sub category" />
+    <CustomPicker
+      selectedValue={formData.child_sub_category_id}
+      onValueChange={val => setFormData({ ...formData, child_sub_category_id: val })}
+      items={childSubCategories}
+      placeholder="Select Child Sub Category"
+      enabled={!!formData.sub_category_id}
     />
 
     <Label text="SKU" />
@@ -666,7 +685,7 @@ const Step2 = ({
         placeholder="Select Finish Type"
       /> */}
 
-      {formData.category_id != 1 && (
+      {formData.category_id == 1 && (
         <>
           <Label text="Stock" />
           <TextInput

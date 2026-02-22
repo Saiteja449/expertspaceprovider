@@ -16,7 +16,7 @@ import SplashLogo from '../../../assets/images/SplashLogo.svg';
 import Upload from '../../../assets/images/upload.svg';
 import { styles } from '../../Globalcss/Globalcss';
 import GradientButton from '../../components/GradientButton';
-import BottomModal from '../../components/BottomModal';
+import StatusModal from '../../components/StatusModal';
 import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
 import { font } from '../../utils/fontFamilies';
 import { CommonActions } from '@react-navigation/native';
@@ -261,29 +261,17 @@ const Step4 = ({ formData, updateField }) => (
 );
 
 const SignupScreen = ({ navigation }) => {
-  const { signup, loading } = useUser();
+  const { signup, loading: contextLoading } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalData, setModalData] = useState({
-    title: '',
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    status: 'processing',
     message: '',
-    type: 'error',
-    actionButtonText: 'OK',
-    onActionPress: null,
   });
   const totalSteps = 4;
 
-  const showModal = (title, message, type = 'error', onActionPress = null) => {
-    setModalData({
-      title,
-      message,
-      type,
-      actionButtonText: 'OK',
-      onActionPress,
-    });
-    setModalVisible(true);
-  };
+
 
   useEffect(() => {
     const backAction = () => {
@@ -397,27 +385,26 @@ const SignupScreen = ({ navigation }) => {
         deviceToken: formData.deviceToken,
       };
 
-      console.log('Payload:', payload);
+      setModalConfig({
+        visible: true,
+        status: 'processing',
+        message: 'Creating your account...',
+      });
 
       const result = await signup(payload);
 
       if (result.success) {
-        showModal(
-          'Success',
-          'Registration successful! Redirecting...',
-          'success',
-          () => {
-            setModalVisible(false);
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: result.navigate }],
-              })
-            );
-          }
-        );
+        setModalConfig({
+          visible: true,
+          status: 'success',
+          message: 'Registration successful! Welcome to the family.',
+        });
       } else {
-        showModal('Signup Failed', result.message || 'Registration failed', 'error');
+        setModalConfig({
+          visible: true,
+          status: 'error',
+          message: result.message || 'Registration failed. Please try again.',
+        });
       }
     }
   };
@@ -496,14 +483,14 @@ const SignupScreen = ({ navigation }) => {
             ) : null}
             <GradientButton
               title={
-                loading
+                contextLoading
                   ? 'Loading...'
                   : currentStep === totalSteps
                     ? 'Submit'
                     : 'Next'
               }
               onPress={handleNext}
-              isLoading={loading}
+              isLoading={contextLoading && !modalConfig.visible}
               colors={['#FF1744', '#FF8C00']}
             />
           </View>
@@ -516,14 +503,23 @@ const SignupScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <BottomModal
-        visible={modalVisible}
-        title={modalData.title}
-        message={modalData.message}
-        type={modalData.type}
-        onClose={() => setModalVisible(false)}
-        actionButtonText={modalData.actionButtonText}
-        onActionPress={modalData.onActionPress}
+      <StatusModal
+        visible={modalConfig.visible}
+        status={modalConfig.status}
+        message={modalConfig.message}
+        onClose={() => {
+          if (modalConfig.status === 'success') {
+            setModalConfig({ ...modalConfig, visible: false });
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'MainTabs' }], // Assuming MainTabs is the destination after success
+              })
+            );
+          } else {
+            setModalConfig({ ...modalConfig, visible: false });
+          }
+        }}
       />
     </View>
   );

@@ -3,17 +3,14 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { styles } from '../../Globalcss/Globalcss';
 import GradientButton from '../../components/GradientButton';
-import successPng from '../../../assets/images/successPng.png';
+import SuccessIcon from '../../Icons/SuccessIcon';
 
 const ProductAddedSuccessScreen = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <View style={styles.successContainer}>
         <View style={styles.successIconContainer}>
-          <Image
-            source={successPng}
-            style={{ width: 150, height: 150, resizeMode: 'contain' }}
-          />
+          <SuccessIcon size={150} />
         </View>
 
         <Text style={styles.successTitle}>
