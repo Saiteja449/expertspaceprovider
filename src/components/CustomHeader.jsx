@@ -52,7 +52,7 @@ const CustomHeader = ({
           <Logo width={40} height={40} />
         </View>
         <View style={styles.customHeaderActionsContainer}>
-          <TouchableOpacity
+          {/*<TouchableOpacity
             style={styles.customHeaderIconButton}
             onPress={onChatPress}
           >
@@ -62,7 +62,7 @@ const CustomHeader = ({
               </View>
             )}
             <ChatIcon width={24} height={24} />
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
           <TouchableOpacity
             style={styles.customHeaderIconButton}
             onPress={onNotificationPress}

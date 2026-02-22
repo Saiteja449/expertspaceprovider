@@ -676,9 +676,9 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E6EAF1',
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 40,
-    height: 120,
+    paddingTop: 12,
+    paddingBottom: 36,
+    height: 140,
     position: 'relative',
   },
   addProductDescriptionInput: {
@@ -686,7 +686,8 @@ export const styles = StyleSheet.create({
     fontFamily: font.REGULAR,
     color: '#000000',
     textAlignVertical: 'top',
-    height: '100%',
+    flex: 1,
+    padding: 0,
   },
   addProductCharCount: {
     position: 'absolute',

@@ -17,6 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { styles } from '../../Globalcss/Globalcss';
 import CustomHeader from '../../components/CustomHeader';
 import GradientButton from '../../components/GradientButton';
+import { getMaterialsForSubCategory } from '../../utils/materialsConstant';
 import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
 import { useProduct } from '../../context/ProductContext';
 
@@ -342,6 +343,7 @@ const AddProductScreen = ({ navigation }) => {
             handleRemoveVariantImage={handleRemoveVariantImage}
             handlePublish={handlePublish}
             apiLoading={createLoading}
+            subCategories={subCategories}
           />
         )}
         <View style={{ height: 40 }} />
@@ -513,9 +515,13 @@ const Step2 = ({
   handleSelectVariantImages,
   handleRemoveVariantImage,
   handlePublish,
-  apiLoading
+  apiLoading,
+  subCategories
 }) => {
-  const materials = ['Teak Wood', 'Rosewood', 'Metal', 'MDF'];
+  const selectedSubCategory = subCategories?.find(sc => sc.id === formData.sub_category_id);
+  const subCategoryName = selectedSubCategory ? selectedSubCategory.name : '';
+  const materials = getMaterialsForSubCategory(subCategoryName);
+
   const colors = ['Beige', 'Black', 'Brown', 'Grey', 'Red'];
   // const finishes = ['Glossy', 'Matte', 'Natural'];
   const statuses = [
@@ -527,12 +533,22 @@ const Step2 = ({
   return (
     <View style={{ padding: 16 }}>
       <Label text="Material" />
-      <CustomPicker
-        selectedValue={formData.material}
-        onValueChange={val => setFormData({ ...formData, material: val })}
-        items={materials}
-        placeholder="Select Material"
-      />
+      {materials.length > 0 ? (
+        <CustomPicker
+          selectedValue={formData.material}
+          onValueChange={val => setFormData({ ...formData, material: val })}
+          items={materials}
+          placeholder="Select Material"
+        />
+      ) : (
+        <TextInput
+          style={styles.addProductInput}
+          placeholder="Enter Material"
+          placeholderTextColor="#9E9E9E"
+          value={formData.material}
+          onChangeText={val => setFormData({ ...formData, material: val })}
+        />
+      )}
 
       {formData.category_id != 1 && (
         <>
