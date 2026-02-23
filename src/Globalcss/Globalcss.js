@@ -1029,6 +1029,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 16,
     marginBottom: 16,
+    marginTop: 16,
   },
   searchBarContainer: {
     flex: 1,

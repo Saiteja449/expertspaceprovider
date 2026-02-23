@@ -14,6 +14,7 @@ import ProductDetailScreen from '../Screens/MainScreens/ProductDetailScreen';
 import AddProductScreen from '../Screens/MainScreens/AddProductScreen';
 import ProductAddedSuccessScreen from '../Screens/MainScreens/ProductAddedSuccessScreen';
 import EditProductScreen from '../Screens/MainScreens/EditProductScreen';
+import OrderDetailScreen from '../Screens/MainScreens/OrderDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,7 @@ const StackNavigation = () => {
             component={ProductAddedSuccessScreen}
           />
           <Stack.Screen name="EditProductScreen" component={EditProductScreen} />
+          <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>

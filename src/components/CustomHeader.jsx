@@ -15,6 +15,7 @@ const CustomHeader = ({
   onLeftPress,
   onRightPress,
   rightIcon,
+  hideRightIcon = false,
   onChatPress = () => console.log('Chat Pressed'),
   onNotificationPress = () => console.log('Notification Pressed'),
   showBadge = true,
@@ -34,12 +35,16 @@ const CustomHeader = ({
 
         <Text style={styles.ordersTitle}>{title}</Text>
 
-        <TouchableOpacity
-          style={styles.headerIconButton}
-          onPress={onRightPress}
-        >
-          {rightIcon ? rightIcon : <SearchIcon width={24} height={24} />}
-        </TouchableOpacity>
+        {!hideRightIcon ? (
+          <TouchableOpacity
+            style={styles.headerIconButton}
+            onPress={onRightPress}
+          >
+            {rightIcon ? rightIcon : <SearchIcon width={24} height={24} />}
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 24, padding: 8 }} /> // Placeholder to keep title centered
+        )}
       </View>
     );
   }
