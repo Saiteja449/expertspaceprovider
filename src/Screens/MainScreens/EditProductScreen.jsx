@@ -12,6 +12,7 @@ import {
     Image,
 } from 'react-native';
 import { styles } from '../../Globalcss/Globalcss';
+import { font } from '../../utils/fontFamilies';
 import CustomHeader from '../../components/CustomHeader';
 import GradientButton from '../../components/GradientButton';
 import { ArrowDownIcon } from '../../Icons/ArrowDownIcon';
@@ -20,19 +21,29 @@ import { Picker } from '@react-native-picker/picker';
 import StatusModal from '../../components/StatusModal';
 import LinearGradient from 'react-native-linear-gradient';
 
-const COLOR_MAP = {
-    Beige: '#F5F5DC',
-    Black: '#000000',
-    Blue: '#0000FF',
-    Brown: '#A52A2A',
-    Grey: '#808080',
-    Green: '#008000',
-    Red: '#FF0000',
-    White: '#FFFFFF',
-    Yellow: '#FFFF00',
-    Silver: '#C0C0C0',
-    Gold: '#FFD700',
-};
+const COMMON_COLORS = [
+    { name: 'Red', code: '#FF0000' },
+    { name: 'Blue', code: '#0000FF' },
+    { name: 'Green', code: '#008000' },
+    { name: 'Yellow', code: '#FFFF00' },
+    { name: 'Black', code: '#000000' },
+    { name: 'White', code: '#FFFFFF' },
+    { name: 'Grey', code: '#808080' },
+    { name: 'Brown', code: '#A52A2A' },
+    { name: 'Beige', code: '#F5F5DC' },
+    { name: 'Silver', code: '#C0C0C0' },
+    { name: 'Gold', code: '#FFD700' },
+    { name: 'Orange', code: '#FFA500' },
+    { name: 'Pink', code: '#FFC0CB' },
+    { name: 'Purple', code: '#800080' },
+    { name: 'Cyan', code: '#00FFFF' },
+    { name: 'Magenta', code: '#FF00FF' },
+    { name: 'Teal', code: '#008080' },
+    { name: 'Lavender', code: '#E6E6FA' },
+    { name: 'Olive', code: '#808000' },
+    { name: 'Maroon', code: '#800000' },
+    { name: 'Navy', code: '#000080' },
+];
 
 const EditProductScreen = ({ route, navigation }) => {
     const { productId } = route.params;
@@ -187,11 +198,10 @@ const EditProductScreen = ({ route, navigation }) => {
             ...prev,
             color_variants: prev.color_variants.map(v => {
                 if (v.id === id) {
-                    let updatedVariant = { ...v, [field]: value };
-                    if (field === 'color_name' && COLOR_MAP[value]) {
-                        updatedVariant.color_code = COLOR_MAP[value];
+                    if (typeof field === 'object') {
+                        return { ...v, ...field };
                     }
-                    return updatedVariant;
+                    return { ...v, [field]: value };
                 }
                 // If another variant is being set as default, ensure others are not default
                 if (field === 'is_default' && value === true) {
@@ -351,14 +361,12 @@ const EditProductScreen = ({ route, navigation }) => {
                                     Variant {index + 1}
                                 </Text>
 
-                                <Label text="Color Name" />
-                                <CustomPicker
-                                    selectedValue={variant.color_name}
-                                    onValueChange={val =>
-                                        updateColorVariant(variant.id, 'color_name', val)
+                                <Label text="Select Color" />
+                                <ColorSelector
+                                    selectedColor={variant.color_code}
+                                    onSelect={(colorObj) =>
+                                        updateColorVariant(variant.id, colorObj)
                                     }
-                                    items={Object.keys(COLOR_MAP)}
-                                    placeholder="Select Color"
                                 />
 
                                 <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
@@ -505,6 +513,104 @@ const CustomPicker = ({
                     return <Picker.Item key={index} label={label} value={value} />;
                 })}
             </Picker>
+        </View>
+    );
+};
+
+const ColorSelector = ({ selectedColor, onSelect }) => {
+    const [customColor, setCustomColor] = useState('');
+    const [showCustomInput, setShowCustomInput] = useState(false);
+
+    return (
+        <View style={{ marginBottom: 8 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 20 }}>
+                {COMMON_COLORS.map(color => (
+                    <TouchableOpacity
+                        key={color.code}
+                        onPress={() => onSelect({ color_name: color.name, color_code: color.code })}
+                        style={[
+                            {
+                                width: 36,
+                                height: 36,
+                                borderRadius: 18,
+                                backgroundColor: color.code,
+                                borderWidth: 1,
+                                borderColor: '#E6EAF1',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            },
+                            selectedColor === color.code && {
+                                borderColor: '#F83336',
+                                borderWidth: 2,
+                            }
+                        ]}
+                    >
+                        {selectedColor === color.code && (
+                            <Text style={{ color: color.code === '#FFFFFF' || color.code === '#E6E6FA' || color.code === '#F5F5DC' || color.code === '#FFFF00' ? '#000' : '#FFF', fontSize: 12, fontWeight: 'bold' }}>✓</Text>
+                        )}
+                    </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                    onPress={() => setShowCustomInput(!showCustomInput)}
+                    style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 18,
+                        backgroundColor: '#F3F4F6',
+                        borderWidth: 1,
+                        borderColor: '#FB923C',
+                        borderStyle: 'dashed',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <Text style={{ color: '#F76627', fontSize: 20, fontWeight: 'bold' }}>+</Text>
+                </TouchableOpacity>
+            </ScrollView>
+
+            {showCustomInput && (
+                <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 12 }}>
+                    <TextInput
+                        style={{
+                            flex: 1,
+                            backgroundColor: '#FFFFFF',
+                            borderRadius: 12,
+                            borderWidth: 1,
+                            borderColor: '#E6EAF1',
+                            paddingHorizontal: 12,
+                            height: 44,
+                            fontSize: 14,
+                            fontFamily: styles.addProductInput.fontFamily,
+                            color: '#000000',
+                        }}
+                        placeholder="#HEX Code"
+                        placeholderTextColor="#9E9E9E"
+                        value={customColor}
+                        onChangeText={(val) => {
+                            setCustomColor(val);
+                            if (val.length === 7 && val.startsWith('#')) {
+                                onSelect({ color_name: 'Custom', color_code: val });
+                            }
+                        }}
+                    />
+                    <TouchableOpacity
+                        onPress={() => {
+                            if (customColor.length >= 4) {
+                                onSelect({ color_name: 'Custom', color_code: customColor });
+                            }
+                        }}
+                        style={{
+                            backgroundColor: '#F83336',
+                            paddingHorizontal: 16,
+                            height: 44,
+                            borderRadius: 12,
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Text style={{ color: '#FFF', fontFamily: styles.addColorText.fontFamily }}>Apply</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 };

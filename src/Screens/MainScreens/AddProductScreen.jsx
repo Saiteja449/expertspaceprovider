@@ -15,6 +15,7 @@ import { Picker } from '@react-native-picker/picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import { styles } from '../../Globalcss/Globalcss';
+import { font } from '../../utils/fontFamilies';
 import CustomHeader from '../../components/CustomHeader';
 import GradientButton from '../../components/GradientButton';
 import { getMaterialsForSubCategory } from '../../utils/materialsConstant';
@@ -24,6 +25,30 @@ import { useProduct } from '../../context/ProductContext';
 // SVG Icons
 import UploadIcon from '../../../assets/images/upload.svg';
 import PlusIcon from '../../../assets/images/plusIcon.svg';
+
+const COMMON_COLORS = [
+  { name: 'Red', code: '#FF0000' },
+  { name: 'Blue', code: '#0000FF' },
+  { name: 'Green', code: '#008000' },
+  { name: 'Yellow', code: '#FFFF00' },
+  { name: 'Black', code: '#000000' },
+  { name: 'White', code: '#FFFFFF' },
+  { name: 'Grey', code: '#808080' },
+  { name: 'Brown', code: '#A52A2A' },
+  { name: 'Beige', code: '#F5F5DC' },
+  { name: 'Silver', code: '#C0C0C0' },
+  { name: 'Gold', code: '#FFD700' },
+  { name: 'Orange', code: '#FFA500' },
+  { name: 'Pink', code: '#FFC0CB' },
+  { name: 'Purple', code: '#800080' },
+  { name: 'Cyan', code: '#00FFFF' },
+  { name: 'Magenta', code: '#FF00FF' },
+  { name: 'Teal', code: '#008080' },
+  { name: 'Lavender', code: '#E6E6FA' },
+  { name: 'Olive', code: '#808000' },
+  { name: 'Maroon', code: '#800000' },
+  { name: 'Navy', code: '#000080' },
+];
 
 const AddProductScreen = ({ navigation }) => {
   const {
@@ -64,6 +89,7 @@ const AddProductScreen = ({ navigation }) => {
     {
       id: Date.now(),
       color_name: '',
+      color_code: '',
       stock: '',
       price_adjustment: '',
       is_default: true,
@@ -149,6 +175,7 @@ const AddProductScreen = ({ navigation }) => {
       {
         id: Date.now(),
         color_name: '',
+        color_code: '',
         stock: '',
         price_adjustment: '',
         is_default: false,
@@ -171,6 +198,9 @@ const AddProductScreen = ({ navigation }) => {
     setColorVariants(
       colorVariants.map(v => {
         if (v.id === id) {
+          if (typeof field === 'object') {
+            return { ...v, ...field };
+          }
           if (field === 'is_default' && value === true) {
             // Set all others to false if this one is set to true
             return { ...v, [field]: value };
@@ -253,6 +283,42 @@ const AddProductScreen = ({ navigation }) => {
   const handlePublish = async () => {
     const isCategoryOne = formData.category_id == 1;
 
+    // Validation
+    const newErrors = {};
+    if (!formData.material) newErrors.material = true;
+    if (!formData.weight) newErrors.weight = true;
+    if (!formData.price) newErrors.price = true;
+    if (!formData.mrp) newErrors.mrp = true;
+
+    if (isCategoryOne) {
+      if (!formData.stock) newErrors.stock = true;
+    } else {
+      if (!formData.dimensions.length) newErrors.dim_length = true;
+      if (!formData.dimensions.width) newErrors.dim_width = true;
+      if (!formData.dimensions.height) newErrors.dim_height = true;
+
+      // Color variants validation
+      const variantErrors = {};
+      colorVariants.forEach((v, index) => {
+        const vErr = {};
+        if (!v.color_code) vErr.color_code = true;
+        if (!v.stock) vErr.stock = true;
+        if (!v.images || v.images.length === 0) vErr.images = true;
+        if (Object.keys(vErr).length > 0) {
+          variantErrors[index] = vErr;
+        }
+      });
+      if (Object.keys(variantErrors).length > 0) {
+        newErrors.colorVariants = variantErrors;
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      alert('Please fill all required fields');
+      return;
+    }
+
     // Base payload
     const finalPayload = {
       ...formData,
@@ -267,7 +333,7 @@ const AddProductScreen = ({ navigation }) => {
     if (!isCategoryOne) {
       finalPayload.color_variants = colorVariants.map(v => ({
         color_name: v.color_name,
-        color_code: '#000000',
+        color_code: v.color_code || '#000000',
         stock: parseInt(v.stock) || 0,
         price_adjustment: parseFloat(v.price_adjustment) || 0,
         is_default: v.is_default,
@@ -344,6 +410,7 @@ const AddProductScreen = ({ navigation }) => {
             handlePublish={handlePublish}
             apiLoading={createLoading}
             subCategories={subCategories}
+            errors={errors}
           />
         )}
         <View style={{ height: 40 }} />
@@ -516,14 +583,9 @@ const Step2 = ({
   handleRemoveVariantImage,
   handlePublish,
   apiLoading,
-  subCategories
+  subCategories,
+  errors = {},
 }) => {
-  const selectedSubCategory = subCategories?.find(sc => sc.id === formData.sub_category_id);
-  const subCategoryName = selectedSubCategory ? selectedSubCategory.name : '';
-  const materials = getMaterialsForSubCategory(subCategoryName);
-
-  const colors = ['Beige', 'Black', 'Brown', 'Grey', 'Red'];
-  // const finishes = ['Glossy', 'Matte', 'Natural'];
   const statuses = [
     { id: 'in_stock', name: 'In Stock' },
     { id: 'out_of_stock', name: 'Out of Stock' },
@@ -533,22 +595,13 @@ const Step2 = ({
   return (
     <View style={{ padding: 16 }}>
       <Label text="Material" />
-      {materials.length > 0 ? (
-        <CustomPicker
-          selectedValue={formData.material}
-          onValueChange={val => setFormData({ ...formData, material: val })}
-          items={materials}
-          placeholder="Select Material"
-        />
-      ) : (
-        <TextInput
-          style={styles.addProductInput}
-          placeholder="Enter Material"
-          placeholderTextColor="#9E9E9E"
-          value={formData.material}
-          onChangeText={val => setFormData({ ...formData, material: val })}
-        />
-      )}
+      <TextInput
+        style={[styles.addProductInput, errors.material && { borderColor: '#F83336' }]}
+        placeholder="Enter Material"
+        placeholderTextColor="#9E9E9E"
+        value={formData.material}
+        onChangeText={val => setFormData({ ...formData, material: val })}
+      />
 
       {formData.category_id != 1 && (
         <>
@@ -568,21 +621,20 @@ const Step2 = ({
                 )}
               </View>
 
-              <Label text="Color Name" />
-              <CustomPicker
-                selectedValue={variant.color_name}
-                onValueChange={val =>
-                  updateColorVariant(variant.id, 'color_name', val)
+              <Label text="Select Color" />
+              <ColorSelector
+                selectedColor={variant.color_code}
+                onSelect={(colorObj) =>
+                  updateColorVariant(variant.id, colorObj)
                 }
-                items={colors}
-                placeholder="Select Color"
+                hasError={errors.colorVariants?.[index]?.color_code}
               />
 
               <View style={{ flexDirection: 'row', gap: 12, }}>
                 <View style={{ flex: 1 }}>
                   <Label text="Stock" />
                   <TextInput
-                    style={styles.addProductInput}
+                    style={[styles.addProductInput, errors.colorVariants?.[index]?.stock && { borderColor: '#F83336' }]}
                     placeholder="10"
                     placeholderTextColor="#9E9E9E"
                     keyboardType="numeric"
@@ -633,6 +685,7 @@ const Step2 = ({
                   <UploadBox
                     onPress={() => handleSelectVariantImages(variant.id)}
                     hint="Upload up to 4 variant images"
+                    hasError={errors.colorVariants?.[index]?.images}
                   />
                 </View>
               )}
@@ -647,51 +700,54 @@ const Step2 = ({
             <Text style={styles.addColorText}>Add color variant</Text>
           </TouchableOpacity>
         </>
-      )}
+      )
+      }
 
-      {formData.category_id != 1 && (
-        <>
-          <Label text="Dimensions" />
-          <View style={styles.addProductDimensionRow}>
-            <TextInput
-              style={styles.addProductDimensionInput}
-              placeholder="Length"
-              placeholderTextColor="#9E9E9E"
-              value={formData.dimensions.length}
-              onChangeText={val =>
-                setFormData({
-                  ...formData,
-                  dimensions: { ...formData.dimensions, length: val },
-                })
-              }
-            />
-            <TextInput
-              style={styles.addProductDimensionInput}
-              placeholder="Width"
-              placeholderTextColor="#9E9E9E"
-              value={formData.dimensions.width}
-              onChangeText={val =>
-                setFormData({
-                  ...formData,
-                  dimensions: { ...formData.dimensions, width: val },
-                })
-              }
-            />
-            <TextInput
-              style={styles.addProductDimensionInput}
-              placeholder="Height"
-              placeholderTextColor="#9E9E9E"
-              value={formData.dimensions.height}
-              onChangeText={val =>
-                setFormData({
-                  ...formData,
-                  dimensions: { ...formData.dimensions, height: val },
-                })
-              }
-            />
-          </View>
-        </>
-      )}
+      {
+        formData.category_id != 1 && (
+          <>
+            <Label text="Dimensions" />
+            <View style={styles.addProductDimensionRow}>
+              <TextInput
+                style={[styles.addProductDimensionInput, errors.dim_length && { borderColor: '#F83336' }]}
+                placeholder="Length"
+                placeholderTextColor="#9E9E9E"
+                value={formData.dimensions.length}
+                onChangeText={val =>
+                  setFormData({
+                    ...formData,
+                    dimensions: { ...formData.dimensions, length: val },
+                  })
+                }
+              />
+              <TextInput
+                style={[styles.addProductDimensionInput, errors.dim_width && { borderColor: '#F83336' }]}
+                placeholder="Width"
+                placeholderTextColor="#9E9E9E"
+                value={formData.dimensions.width}
+                onChangeText={val =>
+                  setFormData({
+                    ...formData,
+                    dimensions: { ...formData.dimensions, width: val },
+                  })
+                }
+              />
+              <TextInput
+                style={[styles.addProductDimensionInput, errors.dim_height && { borderColor: '#F83336' }]}
+                placeholder="Height"
+                placeholderTextColor="#9E9E9E"
+                value={formData.dimensions.height}
+                onChangeText={val =>
+                  setFormData({
+                    ...formData,
+                    dimensions: { ...formData.dimensions, height: val },
+                  })
+                }
+              />
+            </View>
+          </>
+        )
+      }
 
       {/* <Label text="Finish Type" />
       <CustomPicker
@@ -701,23 +757,25 @@ const Step2 = ({
         placeholder="Select Finish Type"
       /> */}
 
-      {formData.category_id == 1 && (
-        <>
-          <Label text="Stock" />
-          <TextInput
-            style={styles.addProductInput}
-            placeholder="Enter Stock"
-            placeholderTextColor="#9E9E9E"
-            keyboardType="numeric"
-            value={formData.stock}
-            onChangeText={val => setFormData({ ...formData, stock: val })}
-          />
-        </>
-      )}
+      {
+        formData.category_id == 1 && (
+          <>
+            <Label text="Stock" />
+            <TextInput
+              style={[styles.addProductInput, errors.stock && { borderColor: '#F83336' }]}
+              placeholder="Enter Stock"
+              placeholderTextColor="#9E9E9E"
+              keyboardType="numeric"
+              value={formData.stock}
+              onChangeText={val => setFormData({ ...formData, stock: val })}
+            />
+          </>
+        )
+      }
 
       <Label text="Item Weight" />
       <TextInput
-        style={styles.addProductInput}
+        style={[styles.addProductInput, errors.weight && { borderColor: '#F83336' }]}
         placeholder="Enter Weight (kg)"
         placeholderTextColor="#9E9E9E"
         keyboardType="numeric"
@@ -735,7 +793,7 @@ const Step2 = ({
 
       <Label text="Selling Price" />
       <TextInput
-        style={styles.addProductInput}
+        style={[styles.addProductInput, errors.price && { borderColor: '#F83336' }]}
         placeholder="Enter Selling Price"
         placeholderTextColor="#9E9E9E"
         keyboardType="numeric"
@@ -745,7 +803,7 @@ const Step2 = ({
 
       <Label text="Actual MRP" />
       <TextInput
-        style={styles.addProductInput}
+        style={[styles.addProductInput, errors.mrp && { borderColor: '#F83336' }]}
         placeholder="Enter Actual MRP"
         placeholderTextColor="#9E9E9E"
         keyboardType="numeric"
@@ -759,7 +817,7 @@ const Step2 = ({
         disabled={apiLoading}
         style={{ marginTop: 24, marginBottom: 40, opacity: apiLoading ? 0.7 : 1 }}
       />
-    </View>
+    </View >
   );
 };
 
@@ -861,5 +919,102 @@ const UploadBox = ({ hint = 'Minimum file size 50mb, jpeg,png,mp4', onPress, sel
     <Text style={styles.uploadHintText}>{hint}</Text>
   </View>
 );
+const ColorSelector = ({ selectedColor, onSelect, hasError = false }) => {
+  const [customColor, setCustomColor] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
+  return (
+    <View style={[{ marginBottom: 8, padding: 4, borderRadius: 24 }, hasError && { borderWidth: 1, borderColor: '#F83336' }]}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 20 }}>
+        {COMMON_COLORS.map(color => (
+          <TouchableOpacity
+            key={color.code}
+            onPress={() => onSelect({ color_name: color.name, color_code: color.code })}
+            style={[
+              {
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: color.code,
+                borderWidth: 1,
+                borderColor: '#E6EAF1',
+                justifyContent: 'center',
+                alignItems: 'center',
+              },
+              selectedColor === color.code && {
+                borderColor: '#F83336',
+                borderWidth: 2,
+              }
+            ]}
+          >
+            {selectedColor === color.code && (
+              <Text style={{ color: color.code === '#FFFFFF' || color.code === '#E6E6FA' || color.code === '#F5F5DC' || color.code === '#FFFF00' ? '#000' : '#FFF', fontSize: 12, fontWeight: 'bold' }}>✓</Text>
+            )}
+          </TouchableOpacity>
+        ))}
+        <TouchableOpacity
+          onPress={() => setShowCustomInput(!showCustomInput)}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: '#F3F4F6',
+            borderWidth: 1,
+            borderColor: '#FB923C',
+            borderStyle: 'dashed',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: '#F76627', fontSize: 20, fontWeight: 'bold' }}>+</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {showCustomInput && (
+        <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 12 }}>
+          <TextInput
+            style={{
+              flex: 1,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#E6EAF1',
+              paddingHorizontal: 12,
+              height: 44,
+              fontSize: 14,
+              fontFamily: font.REGULAR,
+              color: '#000000',
+            }}
+            placeholder="#HEX Code"
+            placeholderTextColor="#9E9E9E"
+            value={customColor}
+            onChangeText={(val) => {
+              setCustomColor(val);
+              if (val.length === 7 && val.startsWith('#')) {
+                onSelect({ color_name: 'Custom', color_code: val });
+              }
+            }}
+          />
+          <TouchableOpacity
+            onPress={() => {
+              if (customColor.length >= 4) {
+                onSelect({ color_name: 'Custom', color_code: customColor });
+              }
+            }}
+            style={{
+              backgroundColor: '#F83336',
+              paddingHorizontal: 16,
+              height: 44,
+              borderRadius: 12,
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: '#FFF', fontFamily: font.SEMI_BOLD }}>Apply</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+};
 
 export default AddProductScreen;

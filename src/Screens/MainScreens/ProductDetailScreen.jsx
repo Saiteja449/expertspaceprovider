@@ -195,6 +195,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
         title="Product Detail"
         rightIcon={<ShareIcon width={24} height={24} />}
         onRightPress={() => console.log('Share Pressed')}
+        hideRightIcon={true}
       />
 
       <ScrollView
