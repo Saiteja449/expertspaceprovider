@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Platform, KeyboardAvoidingView, Alert, Linking } from 'react-native';
 import CustomHeader from '../../components/CustomHeader';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -12,9 +12,55 @@ import {
   LockIcon,
   ChevronRightIcon
 } from '../../Icons/MoreScreenIcons';
+import { useUser } from '../../context/UserContext';
 
 const MoreScreen = () => {
   const navigation = useNavigation();
+  const { user, logout } = useUser();
+  const provider = user?.provider || {};
+  const providerDetails = provider?.providerDetails || {};
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            navigation.replace('SplashScreen');
+          }
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await logout(); // Using logout to clear shared data
+            navigation.replace('SplashScreen');
+          }
+        },
+      ]
+    );
+  };
+
+  const openPrivacyPolicy = () => {
+    Linking.openURL('https://expertspace.in/privacy-policy').catch(err =>
+      console.error("Couldn't load page", err)
+    );
+  };
 
   const MenuItem = ({ icon: Icon, title, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
@@ -28,45 +74,51 @@ const MoreScreen = () => {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.safeArea}>
-      <CustomHeader variant="internal" title="" onLeftPress={() => navigation.goBack()} />
+      <CustomHeader variant="internal" title="" onLeftPress={() => navigation.goBack()}
+        hideRightIcon={true} />
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
 
         {/* Profile Header Card */}
-        <View style={styles.profileCard}>
+        <TouchableOpacity
+          style={styles.profileCard}
+          onPress={() => navigation.navigate('ProfileScreen')}
+        >
           <View style={styles.profileIconContainer}>
-            <Text style={styles.profileIconText}>TH</Text>
+            <Text style={styles.profileIconText}>
+              {(providerDetails.business_name || provider?.name || 'TH').substring(0, 2).toUpperCase()}
+            </Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileTitle}>TONY'S HOUSE</Text>
-            <Text style={styles.profileSubtitle}>@WadeWarren</Text>
+            <Text style={styles.profileTitle}>{providerDetails.business_name || provider?.name || "TONY'S HOUSE"}</Text>
+            <Text style={styles.profileSubtitle}>{provider?.email || "@WadeWarren"}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Personal Info Section */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Personal Info</Text>
-          <MenuItem icon={ProfileUserIcon} title="Profile" onPress={() => { }} />
-          <MenuItem icon={WalletIcon} title="Payment History" onPress={() => { }} />
-          <MenuItem icon={BankIcon} title="Bank Info" onPress={() => { }} />
+          <MenuItem icon={ProfileUserIcon} title="Profile" onPress={() => navigation.navigate('ProfileScreen')} />
+          <MenuItem icon={WalletIcon} title="Recent Transactions" onPress={() => navigation.navigate('PaymentHistoryScreen')} />
+          <MenuItem icon={BankIcon} title="Bank Info" onPress={() => navigation.navigate('BankInfoScreen')} />
         </View>
 
         {/* About Section */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>About</Text>
-          <MenuItem icon={ShieldIcon} title="Legal and Policies" onPress={() => { }} />
-          <MenuItem icon={QuestionIcon} title="Help & Support" onPress={() => { }} />
-          <MenuItem icon={QuestionIcon} title="FAQ" onPress={() => { }} />
+          <MenuItem icon={ShieldIcon} title="Legal and Policies" onPress={openPrivacyPolicy} />
+          <MenuItem icon={QuestionIcon} title="Help & Support" onPress={openPrivacyPolicy} />
+          <MenuItem icon={QuestionIcon} title="FAQ" onPress={openPrivacyPolicy} />
         </View>
 
         {/* Security Section */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Security</Text>
-          <MenuItem icon={LockIcon} title="Change Password" onPress={() => { }} />
-          <MenuItem icon={ShieldCheckIcon} title="Security" onPress={() => { }} />
+          <MenuItem icon={LockIcon} title="Change Password" onPress={() => navigation.navigate('ChangePasswordScreen')} />
+          <MenuItem icon={ShieldCheckIcon} title="Delete Account" onPress={handleDeleteAccount} />
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 

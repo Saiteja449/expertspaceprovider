@@ -15,6 +15,7 @@ import GradientButton from '../../components/GradientButton';
 import StatusModal from '../../components/StatusModal';
 import LinearGradient from 'react-native-linear-gradient';
 import { useUser } from '../../context/UserContext';
+import { CommonActions } from '@react-navigation/native';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -169,12 +170,12 @@ const LoginScreen = ({ navigation }) => {
               <Text style={styles.rememberText}>Remember me</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => console.log('Forgot Password')}
               activeOpacity={0.7}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {errors.email && (
@@ -213,7 +214,14 @@ const LoginScreen = ({ navigation }) => {
         onClose={() => {
           if (modalConfig.status === 'success') {
             setModalConfig({ ...modalConfig, visible: false });
-            navigation.navigate('MainTabs');
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [
+                  { name: 'MainTabs' },
+                ],
+              })
+            );
           } else {
             setModalConfig({ ...modalConfig, visible: false });
           }

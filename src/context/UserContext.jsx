@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiService from '../api/apiService';
+import { initializeFCM, getFCMToken } from '../firebase/pushNotification';
 
 const UserContext = createContext();
 
@@ -9,13 +10,22 @@ export const UserProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    initialize();
+  }, [])
+
+  const initialize = async () => {
+    await initializeFCM();
+  };
+
   const login = async (email, password) => {
     setLoading(true);
     try {
+      const deviceToken = await getFCMToken();
       const response = await apiService.post('/provider/login', {
         email,
         password,
-        deviceToken: 'deviceToken',
+        deviceToken: deviceToken || 'deviceToken',
       });
       console.log('Login Success:', response.data);
       if (!response.data) {
@@ -67,12 +77,17 @@ export const UserProvider = ({ children }) => {
     }
   };
 
- 
+
 
   const signup = async payload => {
     setLoading(true);
     try {
-      const response = await apiService.post('provider/signup', payload);
+      const deviceToken = await getFCMToken();
+      const updatedPayload = {
+        ...payload,
+        deviceToken: deviceToken || 'deviceToken',
+      };
+      const response = await apiService.post('provider/signup', updatedPayload);
       console.log('Signup Response:', response.data);
 
       if (!response.data || !response.data.data) {
@@ -136,6 +151,18 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('userData');
+      setUser(null);
+      return { success: true };
+    } catch (error) {
+      console.error('Logout Error:', error);
+      return { success: false, message: 'Failed to logout' };
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -149,6 +176,7 @@ export const UserProvider = ({ children }) => {
         signup,
         checkLogin,
         fetchProviderProfile,
+        logout,
       }}
     >
       {children}

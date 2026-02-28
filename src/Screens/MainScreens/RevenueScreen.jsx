@@ -1,9 +1,24 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, KeyboardAvoidingView, ActivityIndicator, Dimensions } from 'react-native';
 import CustomHeader from '../../components/CustomHeader';
+import { font } from '../../utils/fontFamilies';
 import { LineChart } from 'react-native-gifted-charts';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
-import { styles as globalStyles } from '../../Globalcss/Globalcss'; // for font/generic layout if needed
+import { styles as globalStyles } from '../../Globalcss/Globalcss';
+import { useUser } from '../../context/UserContext';
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
 
 const CalendarIcon = ({ size = 16, color = '#9E9E9E' }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -12,26 +27,54 @@ const CalendarIcon = ({ size = 16, color = '#9E9E9E' }) => (
   </Svg>
 );
 
+const { width } = Dimensions.get('window');
+
 const RevenueScreen = () => {
+  const { user, fetchProviderProfile, loading } = useUser();
   const [activeFilter, setActiveFilter] = useState('Weekly');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const chartData = [
-    { value: 6000, label: 'Jan' },
-    { value: 9000, label: 'Feb' },
-    { value: 20000, label: 'Mar' },
-    { value: 7000, label: 'Apr' },
-    { value: 4000, label: 'May' },
-    { value: 8000, label: 'Jun' },
-    { value: 4000, label: 'Jul' },
-    { value: 6000, label: 'Aug' },
-    { value: 5000, label: 'Sep' },
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const transactions = [
-    { id: '1', bookingId: 'ASJH657', date: '12 January,2025, 12:34 AM', price: '22,990', customer: 'Darrell Steward', avatar: 'https://i.pravatar.cc/100?img=5' },
-    { id: '2', bookingId: 'ASJH658', date: '12 January,2025, 12:34 AM', price: '22,990', customer: 'Darrell Steward', avatar: 'https://i.pravatar.cc/100?img=5' },
-    { id: '3', bookingId: 'ASJH659', date: '12 January,2025, 12:34 AM', price: '22,990', customer: 'Darrell Steward', avatar: 'https://i.pravatar.cc/100?img=5' },
-  ];
+  const loadData = async () => {
+    setRefreshing(true);
+    await fetchProviderProfile();
+    setRefreshing(false);
+  };
+
+  const getChartData = () => {
+    if (!user || !user.businessInsights) return [];
+
+    let rawData = [];
+    if (activeFilter === 'Weekly') {
+      rawData = user.businessInsights.weekly || [];
+      return rawData.map(item => ({
+        value: parseFloat(item.total),
+        label: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+      }));
+    } else if (activeFilter === 'Monthly') {
+      rawData = user.businessInsights.monthly || [];
+      return rawData.map(item => ({
+        value: parseFloat(item.total),
+        label: item.month,
+      }));
+    } else if (activeFilter === 'Yearly') {
+      rawData = user.businessInsights.yearly || [];
+      return rawData.map(item => ({
+        value: parseFloat(item.total),
+        label: item.year.toString(),
+      }));
+    }
+    return [];
+  };
+
+  const chartData = getChartData();
+  const revenueStats = user?.revenueStats || {};
+  const transactions = user?.recentTransactions || [];
+  const provider = user?.provider || {};
+  const providerDetails = provider?.providerDetails || {};
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.safeArea}>
@@ -42,7 +85,7 @@ const RevenueScreen = () => {
         <View style={styles.welcomeContainer}>
           <Text style={styles.welcomeText}>
             <Text style={styles.welcomeBold}>Welcome Back! </Text>
-            TONY'S HOUSE
+            {providerDetails.business_name || provider?.name || "TONY'S HOUSE"}
           </Text>
           <Text style={styles.welcomeSubtitle}>Manage and grow your business</Text>
         </View>
@@ -51,19 +94,19 @@ const RevenueScreen = () => {
         <View style={styles.statsGrid}>
           <View style={styles.statsCard}>
             <Text style={styles.statsLabel}>Total Revenue</Text>
-            <Text style={styles.statsValue}>₹ 02,12,235</Text>
+            <Text style={styles.statsValue}>₹ {revenueStats.totalRevenue || '0'}</Text>
           </View>
           <View style={styles.statsCard}>
             <Text style={styles.statsLabel}>This Month</Text>
-            <Text style={styles.statsValue}>₹ 45,200</Text>
+            <Text style={styles.statsValue}>₹ {revenueStats.thisMonthRevenue || '0'}</Text>
           </View>
           <View style={styles.statsCard}>
             <Text style={styles.statsLabel}>Pending Payout</Text>
-            <Text style={styles.statsValue}>₹ 12,500</Text>
+            <Text style={styles.statsValue}>₹ {revenueStats.pendingPayout || '0'}</Text>
           </View>
           <View style={styles.statsCard}>
             <Text style={styles.statsLabel}>Completed</Text>
-            <Text style={styles.statsValue}>₹ 1,99,735</Text>
+            <Text style={styles.statsValue}>₹ {revenueStats.completedAmount || '0'}</Text>
           </View>
         </View>
 
@@ -71,7 +114,7 @@ const RevenueScreen = () => {
         <View style={styles.chartCard}>
           <Text style={styles.sectionTitle}>Business Insights</Text>
           <View style={styles.filterRow}>
-            {['Weekly', 'Monthly', 'Yearly'].map(filter => (
+            {['Weekly', 'Monthly'].map(filter => (
               <TouchableOpacity
                 key={filter}
                 style={[styles.pillBtn, activeFilter === filter && styles.activePillBtn]}
@@ -85,29 +128,66 @@ const RevenueScreen = () => {
           </View>
 
           <View style={styles.chartContainer}>
-            <LineChart
-              data={chartData}
-              width={300}
-              height={180}
-              thickness={3}
-              color="#F76627"
-              maxValue={50000}
-              noOfSections={5}
-              yAxisLabelSuffix="k"
-              formatYLabel={(label) => (Number(label) / 1000).toString()}
-              yAxisTextStyle={{ color: '#9E9E9E', fontSize: 10 }}
-              xAxisLabelTextStyle={{ color: '#9E9E9E', fontSize: 10 }}
-              hideRules
-              yAxisColor="transparent"
-              xAxisColor="#E6EAF1"
-              curved
-              isAnimated
-              initialSpacing={0}
-              endSpacing={0}
-              dataPointsColor="#F76627"
-              dataPointsRadius={0}
-              adjustToWidth
-            />
+            {chartData.length > 0 ? (
+              <LineChart
+                areaChart
+                curved
+                data={chartData}
+                height={200}
+                width={width - 100}
+                initialSpacing={30}
+                spacing={(width - 130) / (chartData.length > 1 ? chartData.length - 1 : 1)}
+                color="#F76627"
+                thickness={4}
+                startFillColor="rgba(247, 102, 39, 0.3)"
+                endFillColor="rgba(247, 102, 39, 0.05)"
+                startOpacity={0.4}
+                endOpacity={0.1}
+                noOfSections={4}
+                yAxisThickness={0}
+                xAxisThickness={1}
+                xAxisColor="#E0E0E0"
+                yAxisTextStyle={{ color: '#9E9E9E', fontSize: 10, fontFamily: font.REGULAR }}
+                xAxisLabelTextStyle={{ color: '#9E9E9E', fontSize: 10, fontFamily: font.REGULAR }}
+                hideRules={false}
+                rulesColor="#F0F0F0"
+                rulesType="solid"
+                yAxisColor="transparent"
+                hideDataPoints={false}
+                dataPointsColor="#F76627"
+                dataPointsRadius={4}
+                dataPointsWidth={10}
+                showVerticalLines={false}
+                pointerConfig={{
+                  pointerStripColor: '#F76627',
+                  pointerStripWidth: 2,
+                  pointerColor: '#F76627',
+                  radius: 6,
+                  pointerLabelComponent: items => {
+                    return (
+                      <View
+                        style={{
+                          height: 30,
+                          width: 50,
+                          backgroundColor: '#000',
+                          borderRadius: 4,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontSize: 10 }}>
+                          {items[0].value}
+                        </Text>
+                      </View>
+                    );
+                  },
+                }}
+              />
+            ) : (
+              <View style={{ height: 200, width: width - 80, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: '#9E9E9E', fontFamily: font.REGULAR }}>No data available</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -117,27 +197,30 @@ const RevenueScreen = () => {
         {transactions.map(item => (
           <View key={item.id} style={styles.transactionCard}>
             <View style={styles.transactionTop}>
-              <View style={styles.productImagePlaceholder}>
-                {/* Simulate product image */}
-                <Image source={{ uri: 'https://plus.unsplash.com/premium_photo-1678297270385-ad5067126607?q=80&w=250&auto=format&fit=crop' }} style={styles.productImage} />
-              </View>
+              {/* Image removed as per user request */}
               <View style={styles.transactionInfo}>
-                <Text style={styles.bookingId}>Booking ID: {item.bookingId}</Text>
+                <Text style={styles.bookingId}>Sub Order: {item.sub_order_number}</Text>
                 <View style={styles.dateRow}>
                   <CalendarIcon size={14} color="#666" />
-                  <Text style={styles.dateText}>{item.date}</Text>
+                  <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
                 </View>
-                <Text style={styles.priceText}>₹ {item.price}</Text>
+                <Text style={styles.priceText}>₹ {item.subtotal}</Text>
+              </View>
+              <View style={[styles.statusBadge, {
+                backgroundColor: item.status?.toLowerCase() === 'completed' ? '#E8F5E9' :
+                  item.status?.toLowerCase() === 'pending' ? '#FFF3E0' :
+                    (item.status?.toLowerCase() === 'accepted' || item.status?.toLowerCase() === 'accept') ? '#E3F2FD' : '#FFEBEE'
+              }]}>
+                <Text style={[styles.statusText, {
+                  color: item.status?.toLowerCase() === 'completed' ? '#2E7D32' :
+                    item.status?.toLowerCase() === 'pending' ? '#EF6C00' :
+                      (item.status?.toLowerCase() === 'accepted' || item.status?.toLowerCase() === 'accept') ? '#1976D2' : '#C62828'
+                }]}>
+                  {item.status}
+                </Text>
               </View>
             </View>
-            <View style={styles.divider} />
-            <View style={styles.customerRow}>
-              <Image source={{ uri: item.avatar }} style={styles.customerAvatar} />
-              <View>
-                <Text style={styles.customerLabel}>Customer Name</Text>
-                <Text style={styles.customerName}>{item.customer}</Text>
-              </View>
-            </View>
+            {/* Customer name and avatar are not available in the provided API snippet, so we'll hide or use generic info if needed */}
           </View>
         ))}
 
@@ -321,6 +404,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#000',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'capitalize',
   },
 });
 

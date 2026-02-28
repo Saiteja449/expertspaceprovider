@@ -85,6 +85,7 @@ export const ProductProvider = ({ children }) => {
     try {
       const response = await apiService.get('provider/getProducts');
       if (response.data.success === true) {
+        console.log('Products:', response.data.data);
         setProducts(response.data.data);
       } else {
         setProducts([]);

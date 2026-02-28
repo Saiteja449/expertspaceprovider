@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Image,
   TextInput,
+  Alert,
 } from 'react-native';
 import { styles } from '../../Globalcss/Globalcss';
 import CustomHeader from '../../components/CustomHeader';
@@ -59,7 +60,27 @@ const OrdersScreen = ({ navigation }) => {
     }
   };
 
-  const handleUpdateStatus = async (orderId, newStatus) => {
+  const handleUpdateStatus = (orderId, newStatus) => {
+    let actionText = '';
+    if (newStatus === 'accept') actionText = 'accept';
+    else if (newStatus === 'rejected') actionText = 'reject';
+    else if (newStatus === 'completed') actionText = 'complete';
+
+    Alert.alert(
+      'Confirm Action',
+      `Are you sure you want to ${actionText} this order?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: actionText.charAt(0).toUpperCase() + actionText.slice(1),
+          style: newStatus === 'rejected' ? 'destructive' : 'default',
+          onPress: () => performStatusUpdate(orderId, newStatus)
+        }
+      ]
+    );
+  };
+
+  const performStatusUpdate = async (orderId, newStatus) => {
     try {
       setLoading(true);
       console.log('Updating status for order:', orderId, 'to', newStatus);

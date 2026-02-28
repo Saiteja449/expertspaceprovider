@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "888818780328",
+    "project_id": "expertspace-a9042",
+    "storage_bucket": "expertspace-a9042.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:888818780328:android:d6dd1e41409ff35e8e9a9d",
+        "android_client_info": {
+          "package_name": "com.expertspaceapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDJ-hkZrcBuPhIjXQ7XtCznWBVm7LIF_0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:888818780328:android:aaafe3472953da6a8e9a9d",
+        "android_client_info": {
+          "package_name": "com.expertspaceprovider"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDJ-hkZrcBuPhIjXQ7XtCznWBVm7LIF_0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -15,7 +15,6 @@ import SearchIcon from '../../../assets/images/searchIcon.svg';
 import FilterIcon from '../../../assets/images/filterIcon.svg';
 import PlusIcon from '../../../assets/images/plusIcon.svg';
 import EyeIcon from '../../../assets/images/eyeIcon.svg';
-import ShareIcon from '../../../assets/images/shareIcon.svg';
 import SofaIcon from '../../../assets/images/sofasvg.svg';
 import { useProduct } from '../../context/ProductContext';
 import { BASE_URL } from '../../utils/constant';
@@ -35,7 +34,10 @@ const InventoryScreen = ({ navigation }) => {
     // Tab filtering
     switch (activeTab) {
       case 'Approved':
-        filtered = products.filter(p => p.approval_status === 'approved');
+        filtered = products.filter(p => p.approval_status === 'approved' && p.is_active == true);
+        break;
+      case 'Inactive':
+        filtered = products.filter(p => p.approval_status === 'approved' && p.is_active == false);
         break;
       case 'Pending':
         filtered = products.filter(p => p.approval_status === 'pending');
@@ -104,9 +106,6 @@ const InventoryScreen = ({ navigation }) => {
               <EyeIcon width={20} height={20} />
               <Text style={styles.viewDetailText}>View Product</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.shareBtn}>
-              <ShareIcon width={20} height={20} />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -116,7 +115,9 @@ const InventoryScreen = ({ navigation }) => {
   const getCount = (tab) => {
     switch (tab) {
       case 'Approved':
-        return products.filter(p => p.approval_status === 'approved').length;
+        return products.filter(p => p.approval_status === 'approved' && p.is_active === true).length;
+      case 'Inactive':
+        return products.filter(p => p.approval_status === 'approved' && p.is_active === false).length;
       case 'Pending':
         return products.filter(p => p.approval_status === 'pending').length;
       case 'Rejected':
@@ -174,6 +175,12 @@ const InventoryScreen = ({ navigation }) => {
             count={getCount('Approved')}
             active={activeTab === 'Approved'}
             onPress={() => setActiveTab('Approved')}
+          />
+          <TabPill
+            label="Inactive"
+            count={getCount('Inactive')}
+            active={activeTab === 'Inactive'}
+            onPress={() => setActiveTab('Inactive')}
           />
           <TabPill
             label="Pending"

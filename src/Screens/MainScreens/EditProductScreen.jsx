@@ -49,6 +49,7 @@ const EditProductScreen = ({ route, navigation }) => {
         description: '',
         price: '',
         mrp: '',
+        stock: '',
         dimensions: { length: '', width: '', height: '' },
         is_active: true,
         color_variants: [],
@@ -78,6 +79,7 @@ const EditProductScreen = ({ route, navigation }) => {
                             : { length: '', width: '', height: '' },
                         is_active: !!product.is_active,
                         color_variants: product.colorVariants || [],
+                        stock: product.stock?.toString() || '',
                     };
                     setFormData(mappedData);
                     setInitialData(JSON.parse(JSON.stringify(mappedData))); // Deep clone for comparison
@@ -122,6 +124,8 @@ const EditProductScreen = ({ route, navigation }) => {
                 payload.mrp = parseFloat(formData.mrp);
             if (formData.is_active !== initialData.is_active)
                 payload.is_active = formData.is_active;
+            if (formData.stock !== initialData.stock)
+                payload.stock = parseInt(formData.stock);
 
             // Compare dimensions
             const dimChanged =
@@ -280,6 +284,19 @@ const EditProductScreen = ({ route, navigation }) => {
                     keyboardType="numeric"
                     value={formData.mrp}
                     onChangeText={val => setFormData({ ...formData, mrp: val })}
+                />
+
+                <Label text="Stock" />
+                <TextInput
+                    style={[
+                        styles.addProductInput,
+                        errors.stock && { borderColor: '#F83336' },
+                    ]}
+                    placeholder="Enter Stock"
+                    placeholderTextColor="#9E9E9E"
+                    keyboardType="numeric"
+                    value={formData.stock}
+                    onChangeText={val => setFormData({ ...formData, stock: val })}
                 />
 
                 <Label text="Dimensions" />

@@ -15,6 +15,10 @@ import AddProductScreen from '../Screens/MainScreens/AddProductScreen';
 import ProductAddedSuccessScreen from '../Screens/MainScreens/ProductAddedSuccessScreen';
 import EditProductScreen from '../Screens/MainScreens/EditProductScreen';
 import OrderDetailScreen from '../Screens/MainScreens/OrderDetailScreen';
+import ProfileScreen from '../Screens/MainScreens/ProfileScreen';
+import BankInfoScreen from '../Screens/MainScreens/BankInfoScreen';
+import PaymentHistoryScreen from '../Screens/MainScreens/PaymentHistoryScreen';
+import ChangePasswordScreen from '../Screens/MainScreens/ChangePasswordScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,6 +49,10 @@ const StackNavigation = () => {
           />
           <Stack.Screen name="EditProductScreen" component={EditProductScreen} />
           <Stack.Screen name="OrderDetailScreen" component={OrderDetailScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+          <Stack.Screen name="BankInfoScreen" component={BankInfoScreen} />
+          <Stack.Screen name="PaymentHistoryScreen" component={PaymentHistoryScreen} />
+          <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
