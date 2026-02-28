@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, KeyboardAvoidingView, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform, KeyboardAvoidingView, ActivityIndicator, Dimensions, RefreshControl } from 'react-native';
 import CustomHeader from '../../components/CustomHeader';
 import { font } from '../../utils/fontFamilies';
 import { LineChart } from 'react-native-gifted-charts';
@@ -79,7 +79,13 @@ const RevenueScreen = () => {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.safeArea}>
       <CustomHeader />
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={loadData} />
+        }
+      >
 
         {/* Welcome Section */}
         <View style={styles.welcomeContainer}>

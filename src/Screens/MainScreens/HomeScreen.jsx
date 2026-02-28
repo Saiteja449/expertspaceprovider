@@ -7,6 +7,7 @@ import {
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { styles } from '../../Globalcss/Globalcss';
 import { font } from '../../utils/fontFamilies';
@@ -72,6 +73,9 @@ const HomeScreen = () => {
       <ScrollView
         contentContainerStyle={styles.dashboardScrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={loadData} />
+        }
       >
         <View style={styles.customHeaderWelcomeContainer}>
           <Text style={styles.customHeaderWelcomeText}>
